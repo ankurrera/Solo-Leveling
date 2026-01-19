@@ -141,8 +141,8 @@ const RadarChart = () => {
   return (
     <div className="system-panel p-4 hover-glow animate-fade-in-up animation-delay-100">
       <div className="text-center mb-2">
-        <span className="text-xs text-muted-foreground uppercase tracking-wider">Core Metrics</span>
-        <h3 className="text-sm font-gothic text-primary">Physical Balance</h3>
+        <span className="text-xs text-muted-foreground uppercase tracking-[0.15em]">Core Metrics</span>
+        <h3 className="text-sm font-gothic text-primary uppercase tracking-wider">Physical Balance</h3>
       </div>
       
       {isLoading ? (
@@ -167,7 +167,7 @@ const RadarChart = () => {
 
       {/* Health Bar */}
       <div className="mt-4 text-center border-t border-border/30 pt-3">
-        <div className="text-xs text-muted-foreground uppercase tracking-wider">System Balance</div>
+        <div className="text-xs text-muted-foreground uppercase tracking-[0.15em]">System Balance</div>
         <div className="text-xl font-bold text-foreground mt-1">
           {stats?.health || 35}<span className="text-muted-foreground">/100</span>
         </div>
