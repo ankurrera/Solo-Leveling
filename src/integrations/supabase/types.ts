@@ -14,7 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          level: number | null
+          player_class: string | null
+          rank: string | null
+          updated_at: string
+          user_id: string
+          xp: number | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          level?: number | null
+          player_class?: string | null
+          rank?: string | null
+          updated_at?: string
+          user_id: string
+          xp?: number | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          level?: number | null
+          player_class?: string | null
+          rank?: string | null
+          updated_at?: string
+          user_id?: string
+          xp?: number | null
+        }
+        Relationships: []
+      }
+      training_goals: {
+        Row: {
+          created_at: string
+          current_value: number | null
+          deadline: string | null
+          description: string | null
+          id: string
+          is_completed: boolean | null
+          name: string
+          target_value: number | null
+          unit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          name: string
+          target_value?: number | null
+          unit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          is_completed?: boolean | null
+          name?: string
+          target_value?: number | null
+          unit?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      training_preferences: {
+        Row: {
+          created_at: string
+          focus_areas: string[] | null
+          id: string
+          preferred_days: string[] | null
+          rest_day_notification: boolean | null
+          session_duration_minutes: number | null
+          updated_at: string
+          user_id: string
+          workout_frequency: number | null
+        }
+        Insert: {
+          created_at?: string
+          focus_areas?: string[] | null
+          id?: string
+          preferred_days?: string[] | null
+          rest_day_notification?: boolean | null
+          session_duration_minutes?: number | null
+          updated_at?: string
+          user_id: string
+          workout_frequency?: number | null
+        }
+        Update: {
+          created_at?: string
+          focus_areas?: string[] | null
+          id?: string
+          preferred_days?: string[] | null
+          rest_day_notification?: boolean | null
+          session_duration_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+          workout_frequency?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
