@@ -87,7 +87,7 @@ const CalendarPanel = () => {
     <div className="system-panel p-5 hover-glow animate-fade-in-up animation-delay-300">
       {/* Month Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-gothic text-lg text-primary">{currentMonth} {currentYear}</h3>
+        <h3 className="font-gothic text-lg text-primary uppercase tracking-wider">{currentMonth} {currentYear}</h3>
         <div className="flex gap-1">
           <button 
             className="p-1 text-muted-foreground hover:text-primary transition-colors"
@@ -107,7 +107,7 @@ const CalendarPanel = () => {
       {/* Week Days Header */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {weekDays.map((day) => (
-          <div key={day} className="text-center text-xs text-muted-foreground py-1">
+          <div key={day} className="text-center text-xs text-muted-foreground py-1 uppercase tracking-wider">
             {day}
           </div>
         ))}
@@ -171,11 +171,11 @@ const CalendarPanel = () => {
       {/* XP and Total Sessions */}
       <div className="mt-4 flex justify-center gap-8">
         <div className="text-center">
-          <div className="text-xs text-muted-foreground mb-1">Total XP</div>
+          <div className="text-xs text-muted-foreground mb-1 uppercase tracking-[0.1em]">Total XP</div>
           <div className="text-lg font-bold text-primary">{stats.totalXP}</div>
         </div>
         <div className="text-center">
-          <div className="text-xs text-muted-foreground mb-1">All Time</div>
+          <div className="text-xs text-muted-foreground mb-1 uppercase tracking-[0.1em]">All Time</div>
           <div className="text-lg font-bold text-foreground">{stats.totalSessions}</div>
         </div>
       </div>

@@ -62,7 +62,7 @@ const SkillPointsPanel = () => {
       </div>
 
       {/* Skill Points Title */}
-      <h3 className="text-center font-gothic text-lg text-primary mb-4">Skill Points</h3>
+      <h3 className="text-center font-gothic text-lg text-primary mb-4 uppercase tracking-wider">Skill Points</h3>
 
       {/* Bar Chart - Completed Days in Last 30 Days */}
       <div className="flex items-end justify-between gap-2 h-32 mb-2">
@@ -84,14 +84,14 @@ const SkillPointsPanel = () => {
       </div>
 
       {/* Completed Days */}
-      <div className="text-center text-xs text-muted-foreground mb-4">
+      <div className="text-center text-xs text-muted-foreground mb-4 uppercase tracking-[0.1em]">
         Completed Days (Last 30): {completedDays}
       </div>
 
       {/* Health Bar */}
       <div className="mt-4 pt-4 border-t border-border/30">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-muted-foreground uppercase">Health</span>
+          <span className="text-xs text-muted-foreground uppercase tracking-[0.15em]">Health</span>
           <span className="text-xs text-accent">{healthPercentage}%</span>
         </div>
         <div className="system-progress">
@@ -100,7 +100,7 @@ const SkillPointsPanel = () => {
             style={{ width: `${healthPercentage}%` }}
           />
         </div>
-        <div className="text-right text-xs text-muted-foreground mt-1">
+        <div className="text-right text-xs text-muted-foreground mt-1 uppercase tracking-[0.1em]">
           Balance: {Math.round(healthPercentage)}/100
         </div>
       </div>

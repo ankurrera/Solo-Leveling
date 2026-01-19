@@ -57,87 +57,90 @@ const SessionHistory = () => {
   return (
     <Card className="system-panel hover-glow">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 font-gothic">
           <TrendingUp className="w-5 h-5 text-primary" />
-          Session History
+          SYSTEM LOG
         </CardTitle>
-        <CardDescription>
-          Track your workout journey and earned XP
+        <CardDescription className="uppercase tracking-[0.15em] text-xs">
+          Training Session Records
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {/* Stats Overview - Horizontal System Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 pb-4 border-b border-primary/20">
           <div className="text-center">
+            <div className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-1">Total Sessions</div>
             <div className="text-2xl font-bold text-primary">{stats.totalSessions}</div>
-            <div className="text-xs text-muted-foreground">Total Sessions</div>
           </div>
           <div className="text-center">
+            <div className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-1">Total XP</div>
             <div className="text-2xl font-bold text-accent">{stats.totalXP}</div>
-            <div className="text-xs text-muted-foreground">Total XP</div>
           </div>
           <div className="text-center">
+            <div className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-1">Training Time</div>
             <div className="text-2xl font-bold text-foreground">{stats.totalHours}h</div>
-            <div className="text-xs text-muted-foreground">Training Time</div>
           </div>
           <div className="text-center">
+            <div className="text-xs uppercase tracking-[0.15em] text-muted-foreground mb-1">Consistency</div>
             <div className="text-2xl font-bold text-foreground">{Math.round(stats.consistency)}%</div>
-            <div className="text-xs text-muted-foreground">Consistency</div>
           </div>
         </div>
 
-        {/* Recent Sessions */}
-        <div className="space-y-3">
+        {/* Recent Sessions - Log Console Format */}
+        <div className="space-y-2">
           {sessions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p className="mb-2">No workout sessions logged yet.</p>
-              <p className="text-sm">Start logging your workouts to earn XP and level up!</p>
+              <p className="mb-2 uppercase tracking-[0.15em] text-xs">No training logs found</p>
+              <p className="text-sm">Initialize first session to begin tracking</p>
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="text-sm font-medium mb-2">Recent Sessions</div>
+              <div className="text-xs font-medium mb-3 uppercase tracking-[0.15em] text-primary">System Logs</div>
               {sessions.slice(0, 10).map((session) => (
                 <div
                   key={session.id}
-                  className="rounded-lg border bg-card transition-colors"
+                  className="rounded-lg border border-primary/20 bg-card/50 backdrop-blur-sm transition-all hover:border-primary/40 hover:bg-card/70"
                 >
                   <div
-                    className="flex items-center justify-between p-3 cursor-pointer hover:bg-accent/5"
+                    className="flex items-center justify-between p-3 cursor-pointer"
                     onClick={() => setExpandedSession(
                       expandedSession === session.id ? null : session.id
                     )}
                   >
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 text-sm font-medium">
-                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                        {format(new Date(session.session_date), 'MMM d, yyyy')}
+                      <div className="flex items-center gap-2 text-sm font-medium font-system">
+                        <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                          [{format(new Date(session.session_date), 'yyyy.MM.dd')}]
+                        </span>
+                        <span className="text-primary">▸</span>
+                        <span className="text-foreground">Training Session Complete</span>
                       </div>
-                      <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-4 mt-1.5 text-xs text-muted-foreground font-system">
                         {session.duration_minutes && (
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {session.duration_minutes} min
+                            {session.duration_minutes}m
                           </span>
                         )}
                         {session.notes && (
-                          <span className="truncate max-w-[200px]">{session.notes}</span>
+                          <span className="truncate max-w-[200px] italic">"{session.notes}"</span>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 text-sm font-bold text-accent">
-                        <Zap className="w-4 h-4" />
-                        +{session.total_xp_earned || 0} XP
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-sm font-bold text-accent font-system">
+                        ⚡ +{session.total_xp_earned || 0} XP
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-7 w-7"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingSession(session.id);
                         }}
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-3.5 h-3.5" />
                       </Button>
                       {expandedSession === session.id ? (
                         <ChevronUp className="w-4 h-4 text-muted-foreground" />
@@ -147,19 +150,19 @@ const SessionHistory = () => {
                     </div>
                   </div>
                   
-                  {/* Expanded Details - This would require fetching exercise details */}
+                  {/* Expanded Details */}
                   {expandedSession === session.id && (
-                    <div className="border-t px-3 py-2 bg-muted/30 text-sm">
-                      <p className="text-muted-foreground italic">
-                        Click Edit to view and modify exercises and sets
+                    <div className="border-t border-primary/10 px-3 py-2 bg-background/50 text-xs">
+                      <p className="text-muted-foreground italic font-system">
+                        → Access full session data via Edit function
                       </p>
                     </div>
                   )}
                 </div>
               ))}
               {sessions.length > 10 && (
-                <div className="text-center text-xs text-muted-foreground pt-2">
-                  And {sessions.length - 10} more sessions...
+                <div className="text-center text-xs text-muted-foreground pt-3 uppercase tracking-wider">
+                  + {sessions.length - 10} additional log entries
                 </div>
               )}
             </div>

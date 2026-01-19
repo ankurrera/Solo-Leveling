@@ -106,7 +106,7 @@ const PotionsPanel = () => {
       </div>
       
       {/* Label */}
-      <span className="mt-2 text-[10px] text-muted-foreground uppercase tracking-wider">
+      <span className="mt-2 text-[10px] text-muted-foreground uppercase tracking-[0.15em]">
         {potion.name}
       </span>
       
@@ -121,37 +121,37 @@ const PotionsPanel = () => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Potions Section */}
       <div className="system-panel p-5 hover-glow animate-fade-in-up animation-delay-400">
-        <h3 className="font-gothic text-sm text-primary mb-4 text-center">Recovery Patterns</h3>
+        <h3 className="font-gothic text-sm text-primary mb-4 text-center uppercase tracking-[0.15em]">Recovery Patterns</h3>
         <div className="flex justify-center gap-4">
           {potions.slice(0, 2).map((potion) => (
             <PotionItem key={potion.id} potion={potion} />
           ))}
         </div>
-        <h3 className="font-gothic text-sm text-primary my-4 text-center">Training Patterns</h3>
+        <h3 className="font-gothic text-sm text-primary my-4 text-center uppercase tracking-[0.15em]">Training Patterns</h3>
         <div className="flex justify-center gap-4">
           {potions.slice(2).map((potion) => (
             <PotionItem key={potion.id} potion={potion} />
           ))}
         </div>
-        <p className="text-center text-xs text-muted-foreground mt-4 italic">
+        <p className="text-center text-xs text-muted-foreground mt-4 italic tracking-[0.1em]">
           Earned through consistent training habits
         </p>
       </div>
 
       {/* HP Boosts Section */}
       <div className="system-panel p-5 hover-glow animate-fade-in-up animation-delay-400">
-        <h3 className="font-gothic text-sm text-primary mb-4 text-center">System Rewards</h3>
+        <h3 className="font-gothic text-sm text-primary mb-4 text-center uppercase tracking-[0.15em]">System Rewards</h3>
         <div className="flex justify-center gap-6">
           {hpBoosts.map((potion) => (
             <PotionItem key={potion.id} potion={potion} />
           ))}
         </div>
-        <h3 className="font-gothic text-sm text-primary mt-6 mb-4 text-center">Balance Indicators</h3>
+        <h3 className="font-gothic text-sm text-primary mt-6 mb-4 text-center uppercase tracking-[0.15em]">Balance Indicators</h3>
         <div className="flex justify-center gap-6">
           <PotionItem potion={{ ...hpBoosts[0], name: "Habit", count: behaviorPatterns?.consistency_streaks || 0 }} />
           <PotionItem potion={{ ...hpBoosts[1], name: "Rest", count: Math.min(10, Math.floor((behaviorPatterns?.rest_days || 0) / 3)) }} />
         </div>
-        <p className="text-center text-xs text-muted-foreground mt-4 italic">
+        <p className="text-center text-xs text-muted-foreground mt-4 italic tracking-[0.1em]">
           Generated from behavior analysis
         </p>
       </div>

@@ -29,7 +29,7 @@ const WorkoutSessionForm = () => {
 
   return (
     <Button
-      className="w-full sm:w-auto"
+      className="w-full sm:w-auto uppercase tracking-[0.1em]"
       onClick={() => setIsLogging(true)}
     >
       <Plus className="w-4 h-4 mr-2" />

@@ -61,7 +61,7 @@ const GoalPanel = () => {
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         <Target className="w-4 h-4 text-primary" />
-        <h3 className="font-gothic text-lg text-primary">Goal</h3>
+        <h3 className="font-gothic text-lg text-primary uppercase tracking-wider">System Objectives</h3>
       </div>
 
       {/* Progress Arrow */}
@@ -114,8 +114,8 @@ const GoalPanel = () => {
       {/* Goal Progress Bars */}
       <div className="space-y-3 pt-4 border-t border-border/30">
         {goals.length === 0 ? (
-          <div className="text-center py-4 text-muted-foreground text-xs">
-            No goals set yet. Create goals in your profile!
+          <div className="text-center py-4 text-muted-foreground text-xs uppercase tracking-[0.15em]">
+            No objectives registered
           </div>
         ) : (
           goals.slice(0, 3).map((goal) => {
@@ -125,11 +125,11 @@ const GoalPanel = () => {
             
             return (
               <div key={goal.id}>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs text-muted-foreground truncate max-w-[150px]">
-                    {goal.name}
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-xs text-muted-foreground truncate max-w-[180px] uppercase tracking-[0.1em]">
+                    OBJECTIVE: {goal.name}
                   </span>
-                  <span className="text-xs text-primary">{Math.round(percentage)}%</span>
+                  <span className="text-xs text-primary font-bold">{Math.round(percentage)}%</span>
                 </div>
                 <div className="system-progress h-2">
                   <div 
