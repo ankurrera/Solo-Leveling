@@ -53,7 +53,9 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
 
   // Create a new session if not editing
   useEffect(() => {
-    if (!sessionId && !currentSession && user && !sessionCreationInitiated.current) {
+    const shouldCreateSession = !sessionId && !currentSession && user && !sessionCreationInitiated.current;
+    
+    if (shouldCreateSession) {
       sessionCreationInitiated.current = true;
       createSession(
         {
@@ -73,6 +75,9 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
         }
       );
     }
+    // createSession and getSessionDetails are intentionally omitted from dependencies
+    // as they are stable functions from the custom hook. Including them would cause
+    // unnecessary re-runs and potential infinite loops.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, currentSession, user]);
 
