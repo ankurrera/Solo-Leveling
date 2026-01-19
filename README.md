@@ -103,6 +103,28 @@ All tables have Row Level Security (RLS) enabled and are secured to the authenti
 - **Auth**: Supabase Auth (from your instance)
 - **Database**: PostgreSQL (via your Supabase project)
 
+## Features
+
+### System Status - RPG-Style Training Dashboard
+The app presents your real gym progress as an RPG character sheet with:
+- **Level & XP System** - Earn XP based on workout volume and duration
+- **Core Stats** - Strength, Endurance, Recovery, Consistency, Mobility (all calculated from real data)
+- **Radar Chart** - Visual balance of your physical metrics
+- **Training Calendar** - Track completed sessions and rest days
+- **Goals** - Set and track long-term fitness objectives
+- **Behavior Patterns** - Earn "potions" through good training habits
+
+**All stats are derived from logged workouts. No fake numbers. No manual editing.**
+
+📖 [System Status User Guide](SYSTEM_STATUS_USER_GUIDE.md)  
+🔧 [System Status Technical Documentation](SYSTEM_STATUS_TECHNICAL_DOCS.md)
+
+### Workout Logging
+- Log exercises with sets, reps, and weight
+- Inline editing of all workout data
+- Autosave functionality
+- Session history with XP tracking
+
 ## Development Commands
 
 ```sh

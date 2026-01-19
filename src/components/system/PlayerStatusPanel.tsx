@@ -1,6 +1,7 @@
 import { Shield, Zap } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useWorkoutSessions } from "@/hooks/useWorkoutSessions";
+import { useStats } from "@/hooks/useStats";
 
 interface StatBarProps {
   label: string;
@@ -35,8 +36,9 @@ const StatBar = ({ label, value, maxValue, delay = 0 }: StatBarProps) => {
 const PlayerStatusPanel = () => {
   const { profile, isLoading } = useProfile();
   const { sessions, calculateStats } = useWorkoutSessions();
+  const { stats: calculatedStats, isLoading: statsLoading } = useStats();
   
-  if (isLoading) {
+  if (isLoading || statsLoading) {
     return (
       <div className="system-panel p-5">
         <div className="flex items-center justify-center py-8">
@@ -46,34 +48,30 @@ const PlayerStatusPanel = () => {
     );
   }
 
-  const stats = calculateStats(sessions);
+  const sessionStats = calculateStats(sessions);
   const level = profile?.level || 1;
   const currentXP = profile?.xp || 0;
   const xpForNextLevel = level * 100;
   
-  // Stat calculation constants - tuned for progression feel
-  const STRENGTH_BASE = 30;
-  const STRENGTH_PER_SESSION = 2;
-  const ENDURANCE_BASE = 25;
-  const ENDURANCE_PER_HOUR = 3;
-  const RECOVERY_BASE = 35;
-  const RECOVERY_PER_RECENT_SESSION = 5;
-  
-  // Calculate stats based on session data
-  const strength = Math.min(100, Math.floor(stats.totalSessions * STRENGTH_PER_SESSION + STRENGTH_BASE));
-  const endurance = Math.min(100, Math.floor(stats.totalHours * ENDURANCE_PER_HOUR + ENDURANCE_BASE));
-  const recovery = Math.min(100, Math.floor(stats.recentSessionCount * RECOVERY_PER_RECENT_SESSION + RECOVERY_BASE));
-  const consistency = Math.min(100, Math.round(stats.consistency));
+  // Use calculated stats from database functions
+  const stats = calculatedStats || {
+    strength: 30,
+    endurance: 25,
+    recovery: 50,
+    consistency: 0,
+    mobility: 30,
+    health: 35
+  };
   
   const playerData = {
     level,
     rank: profile?.rank || "E",
     class: profile?.player_class || "Hunter",
     stats: {
-      strength,
-      endurance,
-      recovery,
-      consistency,
+      strength: stats.strength,
+      endurance: stats.endurance,
+      recovery: stats.recovery,
+      consistency: stats.consistency,
     }
   };
 
@@ -156,15 +154,15 @@ const PlayerStatusPanel = () => {
         <div className="mt-3 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Total Workouts</span>
-            <span className="text-foreground">{stats.totalSessions}</span>
+            <span className="text-foreground">{sessionStats.totalSessions}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Total XP Earned</span>
-            <span className="text-foreground">{stats.totalXP}</span>
+            <span className="text-foreground">{sessionStats.totalXP}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Training Hours</span>
-            <span className="text-foreground">{stats.totalHours}h</span>
+            <span className="text-foreground">{sessionStats.totalHours}h</span>
           </div>
         </div>
       </div>
