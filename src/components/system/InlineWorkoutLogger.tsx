@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,7 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
   const [isSaving, setIsSaving] = useState(false);
   const [newExerciseName, setNewExerciseName] = useState("");
   const [isAddingExercise, setIsAddingExercise] = useState(false);
+  const sessionCreationInitiated = useRef(false);
 
   // Load existing session if editing
   useEffect(() => {
@@ -52,7 +53,8 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
 
   // Create a new session if not editing
   useEffect(() => {
-    if (!sessionId && !currentSession && user) {
+    if (!sessionId && !currentSession && user && !sessionCreationInitiated.current) {
+      sessionCreationInitiated.current = true;
       createSession(
         {
           session_date: new Date().toISOString(),
@@ -63,11 +65,16 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
           onSuccess: async (session) => {
             const fullSession = await getSessionDetails(session.id);
             setCurrentSession(fullSession);
+          },
+          onError: () => {
+            // Reset the flag on error so user can retry
+            sessionCreationInitiated.current = false;
           }
         }
       );
     }
-  }, [sessionId, currentSession, user, createSession, getSessionDetails]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, currentSession, user]);
 
   const handleAddExercise = useCallback(async () => {
     if (!newExerciseName.trim() || !currentSession) {
