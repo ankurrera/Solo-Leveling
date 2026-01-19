@@ -210,7 +210,7 @@ export type Database = {
           exercise_id: string
           set_number: number
           reps: number
-          weight: number | null
+          weight_kg: number | null
           duration_seconds: number | null
           distance_meters: number | null
           notes: string | null
@@ -222,7 +222,7 @@ export type Database = {
           exercise_id: string
           set_number: number
           reps: number
-          weight?: number | null
+          weight_kg?: number | null
           duration_seconds?: number | null
           distance_meters?: number | null
           notes?: string | null
@@ -234,7 +234,7 @@ export type Database = {
           exercise_id?: string
           set_number?: number
           reps?: number
-          weight?: number | null
+          weight_kg?: number | null
           duration_seconds?: number | null
           distance_meters?: number | null
           notes?: string | null
