@@ -9,6 +9,8 @@ import CalendarPanel from "@/components/system/CalendarPanel";
 import GoalPanel from "@/components/system/GoalPanel";
 import PotionsPanel from "@/components/system/PotionsPanel";
 import CornerDecoration from "@/components/system/CornerDecoration";
+import WorkoutSessionForm from "@/components/system/WorkoutSessionForm";
+import SessionHistory from "@/components/system/SessionHistory";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 
@@ -64,6 +66,11 @@ const Index = () => {
         {/* Header */}
         <SystemHeader />
 
+        {/* Workout Action Button */}
+        <div className="mt-4 flex justify-center">
+          <WorkoutSessionForm />
+        </div>
+
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mt-8">
           {/* Left Column - Player Status */}
@@ -89,6 +96,11 @@ const Index = () => {
           
           {/* Goals */}
           <GoalPanel />
+        </div>
+
+        {/* Session History Section */}
+        <div className="mt-4">
+          <SessionHistory />
         </div>
 
         {/* Potions Section */}
