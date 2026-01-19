@@ -37,6 +37,8 @@ npm install
 
 ### 4. Configure Environment Variables
 
+**Important:** The `.env` file is not included in this repository for security reasons. You must create it yourself.
+
 1. Copy the example environment file:
    ```sh
    cp .env.example .env
@@ -49,7 +51,7 @@ npm install
    VITE_SUPABASE_PROJECT_ID=your-project-id-here
    ```
 
-3. **NEVER commit your `.env` file to version control** - it contains your credentials
+3. **NEVER commit your `.env` file to version control** - it is already in `.gitignore`
 
 ### 5. Set Up Database Schema
 
