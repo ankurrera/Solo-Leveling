@@ -30,7 +30,7 @@ export interface ExerciseSet {
   exercise_id: string;
   set_number: number;
   reps: number;
-  weight: number | null;
+  weight_kg: number | null;
   duration_seconds: number | null;
   distance_meters: number | null;
   notes: string | null;
@@ -127,7 +127,7 @@ export const useWorkoutSessions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
-      toast.success('Workout session created');
+      toast.success('Ready to log your workout!');
     },
     onError: (error: Error) => {
       toast.error(`Failed to create session: ${error.message}`);
@@ -149,7 +149,6 @@ export const useWorkoutSessions = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
-      toast.success('Exercise added');
     },
     onError: (error: Error) => {
       toast.error(`Failed to add exercise: ${error.message}`);
@@ -171,10 +170,91 @@ export const useWorkoutSessions = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
-      toast.success('Set added');
     },
     onError: (error: Error) => {
       toast.error(`Failed to add set: ${error.message}`);
+    }
+  });
+
+  // Update an exercise
+  const updateExerciseMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<SessionExercise> & { id: string }) => {
+      if (!user) throw new Error('Not authenticated');
+      const { data, error } = await supabase
+        .from('session_exercises')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as SessionExercise;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update exercise: ${error.message}`);
+    }
+  });
+
+  // Delete an exercise (cascades to sets)
+  const deleteExerciseMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase
+        .from('session_exercises')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete exercise: ${error.message}`);
+    }
+  });
+
+  // Update a set
+  const updateSetMutation = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<ExerciseSet> & { id: string }) => {
+      if (!user) throw new Error('Not authenticated');
+      const { data, error } = await supabase
+        .from('exercise_sets')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data as ExerciseSet;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update set: ${error.message}`);
+    }
+  });
+
+  // Delete a set
+  const deleteSetMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase
+        .from('exercise_sets')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to delete set: ${error.message}`);
     }
   });
 
@@ -255,7 +335,11 @@ export const useWorkoutSessions = () => {
     addExercise: addExerciseMutation.mutate,
     addSet: addSetMutation.mutate,
     updateSession: updateSessionMutation.mutate,
+    updateExercise: updateExerciseMutation.mutate,
+    updateSet: updateSetMutation.mutate,
     deleteSession: deleteSessionMutation.mutate,
+    deleteExercise: deleteExerciseMutation.mutate,
+    deleteSet: deleteSetMutation.mutate,
     calculateStats,
     isCreatingSession: createSessionMutation.isPending,
     isAddingExercise: addExerciseMutation.isPending,

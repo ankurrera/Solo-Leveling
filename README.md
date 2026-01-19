@@ -61,6 +61,7 @@ npm install
    - `20260119064145_5c3fc727-e03b-4e75-80ca-d27267150d93.sql`
    - `20260119065541_af69017e-df74-43bb-9634-c0e9b6d3473f.sql`
    - `20260119070601_add_session_logging.sql`
+   - `20260119094000_rename_weight_to_weight_kg.sql`
 
 This creates all necessary tables, views, and Row Level Security (RLS) policies.
 
