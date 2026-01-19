@@ -35,13 +35,6 @@ const Index = () => {
   if (!user) {
     return null;
   }
-  const radarData = [
-    { label: "STR", value: 65 },
-    { label: "END", value: 55 },
-    { label: "MOB", value: 45 },
-    { label: "REC", value: 70 },
-    { label: "CON", value: 80 },
-  ];
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -80,7 +73,7 @@ const Index = () => {
 
           {/* Center Column - Radar Chart */}
           <div className="lg:col-span-5">
-            <RadarChart data={radarData} />
+            <RadarChart />
           </div>
 
           {/* Right Column - Skill Points */}

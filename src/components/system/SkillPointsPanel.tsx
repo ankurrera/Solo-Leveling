@@ -1,43 +1,76 @@
 import { CircularProgress } from "./CircularProgress";
-
-interface SkillBar {
-  day: number;
-  value: number;
-}
+import { useProfile } from "@/hooks/useProfile";
+import { useWorkoutSessions } from "@/hooks/useWorkoutSessions";
+import { useStats } from "@/hooks/useStats";
 
 const SkillPointsPanel = () => {
-  const skillBars: SkillBar[] = [
-    { day: 1, value: 30 },
-    { day: 4, value: 45 },
-    { day: 5, value: 55 },
-    { day: 18, value: 75 },
-    { day: 11, value: 60 },
-    { day: 20, value: 90 },
-  ];
+  const { profile } = useProfile();
+  const { sessions } = useWorkoutSessions();
+  const { stats } = useStats();
 
-  const completedDays = 696;
-  const healthPercentage = 40;
+  // Skill Points = total_XP / 10 (not spendable, just for visual progression)
+  const totalXP = profile?.xp || 0;
+  const currentLevel = profile?.level || 1;
+  const skillPoints = Math.floor(totalXP / 10);
+
+  // Get last 30 days of sessions for the chart
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentSessions = sessions.filter(s => new Date(s.session_date) > thirtyDaysAgo);
+  
+  // Group sessions by day and create bar chart data (show up to 6 bars)
+  const sessionsByDay = recentSessions.reduce((acc, session) => {
+    const day = new Date(session.session_date).getDate();
+    acc[day] = (acc[day] || 0) + 1;
+    return acc;
+  }, {} as Record<number, number>);
+
+  // Convert to array and take last 6 days with workouts
+  const skillBars = Object.entries(sessionsByDay)
+    .map(([day, count]) => ({
+      day: parseInt(day),
+      value: Math.min(100, count * 30) // Scale: 1 session = 30%, 3+ sessions = 100%
+    }))
+    .sort((a, b) => a.day - b.day)
+    .slice(-6);
+
+  // Fill with default if no data
+  if (skillBars.length === 0) {
+    skillBars.push(
+      { day: 1, value: 0 },
+      { day: 7, value: 0 },
+      { day: 14, value: 0 },
+      { day: 21, value: 0 },
+      { day: 28, value: 0 }
+    );
+  }
+
+  const completedDays = recentSessions.length;
+  
+  // Health = (Recovery + Endurance + Consistency) / 3
+  const healthPercentage = stats?.health || 35;
 
   return (
     <div className="system-panel p-5 hover-glow animate-fade-in-up animation-delay-200">
       {/* Circular Progress */}
       <div className="flex justify-center mb-4">
-        <CircularProgress value={completedDays} max={1000} label="BONUS" />
+        <CircularProgress value={skillPoints} max={1000} label="SKILL PTS" />
       </div>
 
       {/* Skill Points Title */}
       <h3 className="text-center font-gothic text-lg text-primary mb-4">Skill Points</h3>
 
-      {/* Bar Chart */}
+      {/* Bar Chart - Completed Days in Last 30 Days */}
       <div className="flex items-end justify-between gap-2 h-32 mb-2">
         {skillBars.map((bar, index) => (
           <div key={index} className="flex flex-col items-center flex-1">
             <div 
-              className="w-full rounded-t bg-gradient-to-t from-primary to-accent relative group"
+              className="w-full rounded-t bg-gradient-to-t from-primary to-accent relative group cursor-pointer"
               style={{ 
                 height: `${bar.value}%`,
                 transition: `height 0.8s ease-out ${index * 100}ms`
               }}
+              title={`Day ${bar.day}`}
             >
               <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
@@ -48,7 +81,7 @@ const SkillPointsPanel = () => {
 
       {/* Completed Days */}
       <div className="text-center text-xs text-muted-foreground mb-4">
-        Completed Days
+        Completed Days (Last 30): {completedDays}
       </div>
 
       {/* Health Bar */}
@@ -63,7 +96,9 @@ const SkillPointsPanel = () => {
             style={{ width: `${healthPercentage}%` }}
           />
         </div>
-        <div className="text-right text-xs text-muted-foreground mt-1">500</div>
+        <div className="text-right text-xs text-muted-foreground mt-1">
+          Balance: {Math.round(healthPercentage)}/100
+        </div>
       </div>
     </div>
   );
