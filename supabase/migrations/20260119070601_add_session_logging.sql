@@ -145,12 +145,16 @@ CREATE TRIGGER update_exercise_sets_updated_at
   EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Create function to calculate XP from session data
+-- XP Reward System: 10 XP per exercise + 5 XP per set
+-- This encourages both variety (different exercises) and volume (more sets)
 CREATE OR REPLACE FUNCTION public.calculate_session_xp(session_id_param UUID)
 RETURNS INTEGER AS $$
 DECLARE
   total_xp INTEGER := 0;
   exercise_count INTEGER;
   set_count INTEGER;
+  XP_PER_EXERCISE CONSTANT INTEGER := 10;
+  XP_PER_SET CONSTANT INTEGER := 5;
 BEGIN
   -- Count exercises in session
   SELECT COUNT(*) INTO exercise_count
@@ -163,8 +167,8 @@ BEGIN
   INNER JOIN public.session_exercises se ON se.id = es.exercise_id
   WHERE se.session_id = session_id_param;
   
-  -- Calculate XP: 10 XP per exercise + 5 XP per set
-  total_xp := (exercise_count * 10) + (set_count * 5);
+  -- Calculate XP using reward constants
+  total_xp := (exercise_count * XP_PER_EXERCISE) + (set_count * XP_PER_SET);
   
   RETURN total_xp;
 END;

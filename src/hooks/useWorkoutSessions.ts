@@ -225,13 +225,16 @@ export const useWorkoutSessions = () => {
 
   // Calculate stats from all sessions
   const calculateStats = (sessions: WorkoutSession[]) => {
+    const IDEAL_SESSIONS_PER_MONTH = 12; // 3 sessions per week is ideal consistency
+    const DAYS_IN_MONTH = 30;
+    
     const totalSessions = sessions.length;
     const totalXP = sessions.reduce((sum, session) => sum + (session.total_xp_earned || 0), 0);
     const totalMinutes = sessions.reduce((sum, session) => sum + (session.duration_minutes || 0), 0);
     
     // Calculate consistency (sessions in last 30 days)
     const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - DAYS_IN_MONTH);
     const recentSessions = sessions.filter(s => new Date(s.session_date) > thirtyDaysAgo);
     
     return {
@@ -239,7 +242,7 @@ export const useWorkoutSessions = () => {
       totalXP,
       totalMinutes,
       totalHours: Math.floor(totalMinutes / 60),
-      consistency: Math.min(100, (recentSessions.length / 12) * 100), // 12 sessions in 30 days = 100%
+      consistency: Math.min(100, (recentSessions.length / IDEAL_SESSIONS_PER_MONTH) * 100),
       recentSessionCount: recentSessions.length
     };
   };

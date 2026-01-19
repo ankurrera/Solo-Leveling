@@ -88,35 +88,54 @@ const WorkoutSessionForm = () => {
         },
         {
           onSuccess: async (session) => {
-            // Add each exercise and its sets
+            // Add each exercise and its sets sequentially to ensure proper ordering
             for (let i = 0; i < exercises.length; i++) {
               const exercise = exercises[i];
               
-              addExercise(
-                {
-                  session_id: session.id,
-                  exercise_name: exercise.exercise_name,
-                  exercise_type: exercise.exercise_type,
-                  order_index: i,
-                  notes: null
-                },
-                {
-                  onSuccess: async (exerciseData) => {
-                    // Add sets for this exercise
-                    for (const set of exercise.sets) {
-                      addSet({
-                        exercise_id: exerciseData.id,
-                        set_number: set.set_number,
-                        reps: set.reps,
-                        weight: set.weight,
-                        duration_seconds: null,
-                        distance_meters: null,
-                        notes: null
-                      });
-                    }
+              // Wait for exercise to be created before adding sets
+              await new Promise<void>((resolve, reject) => {
+                addExercise(
+                  {
+                    session_id: session.id,
+                    exercise_name: exercise.exercise_name,
+                    exercise_type: exercise.exercise_type,
+                    order_index: i,
+                    notes: null
+                  },
+                  {
+                    onSuccess: async (exerciseData) => {
+                      // Add all sets for this exercise
+                      try {
+                        await Promise.all(
+                          exercise.sets.map((set) =>
+                            new Promise<void>((resolveSet, rejectSet) => {
+                              addSet(
+                                {
+                                  exercise_id: exerciseData.id,
+                                  set_number: set.set_number,
+                                  reps: set.reps,
+                                  weight: set.weight,
+                                  duration_seconds: null,
+                                  distance_meters: null,
+                                  notes: null
+                                },
+                                {
+                                  onSuccess: () => resolveSet(),
+                                  onError: (error) => rejectSet(error)
+                                }
+                              );
+                            })
+                          )
+                        );
+                        resolve();
+                      } catch (error) {
+                        reject(error);
+                      }
+                    },
+                    onError: (error) => reject(error)
                   }
-                }
-              );
+                );
+              });
             }
 
             // Reset form and close dialog

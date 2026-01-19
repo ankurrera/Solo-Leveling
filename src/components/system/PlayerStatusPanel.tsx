@@ -51,10 +51,18 @@ const PlayerStatusPanel = () => {
   const currentXP = profile?.xp || 0;
   const xpForNextLevel = level * 100;
   
+  // Stat calculation constants - tuned for progression feel
+  const STRENGTH_BASE = 30;
+  const STRENGTH_PER_SESSION = 2;
+  const ENDURANCE_BASE = 25;
+  const ENDURANCE_PER_HOUR = 3;
+  const RECOVERY_BASE = 35;
+  const RECOVERY_PER_RECENT_SESSION = 5;
+  
   // Calculate stats based on session data
-  const strength = Math.min(100, Math.floor(stats.totalSessions * 2 + 30)); // Base 30 + growth
-  const endurance = Math.min(100, Math.floor(stats.totalHours * 3 + 25)); // Based on time
-  const recovery = Math.min(100, Math.floor(stats.recentSessionCount * 5 + 35)); // Recent activity
+  const strength = Math.min(100, Math.floor(stats.totalSessions * STRENGTH_PER_SESSION + STRENGTH_BASE));
+  const endurance = Math.min(100, Math.floor(stats.totalHours * ENDURANCE_PER_HOUR + ENDURANCE_BASE));
+  const recovery = Math.min(100, Math.floor(stats.recentSessionCount * RECOVERY_PER_RECENT_SESSION + RECOVERY_BASE));
   const consistency = Math.min(100, Math.round(stats.consistency));
   
   const playerData = {
