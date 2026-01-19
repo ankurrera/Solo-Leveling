@@ -329,10 +329,12 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                     <div className="flex items-center gap-2 flex-1">
                       <Input
                         type="number"
-                        value={set.weight_kg || 0}
-                        onChange={(e) => 
-                          handleUpdateSet(set.id, 'weight_kg', parseFloat(e.target.value) || 0)
-                        }
+                        value={set.weight_kg ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? null : parseFloat(e.target.value);
+                          if (value !== null && value < 0) return;
+                          handleUpdateSet(set.id, 'weight_kg', value === null ? 0 : value);
+                        }}
                         className="w-24"
                         min="0"
                         step="0.5"
@@ -343,12 +345,14 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                       <Input
                         type="number"
                         value={set.reps}
-                        onChange={(e) => 
-                          handleUpdateSet(set.id, 'reps', parseInt(e.target.value) || 1)
-                        }
+                        onChange={(e) => {
+                          const value = e.target.value === '' ? 1 : parseInt(e.target.value);
+                          if (value < 1) return;
+                          handleUpdateSet(set.id, 'reps', value);
+                        }}
                         className="w-20"
                         min="1"
-                        placeholder="0"
+                        placeholder="1"
                       />
                       <span className="text-muted-foreground">reps</span>
                     </div>
@@ -432,7 +436,10 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
           <div className="pt-4 border-t">
             <Button
               onClick={() => {
-                toast.success("Workout completed! XP earned!");
+                const totalExercises = currentSession.exercises.length;
+                const totalSets = currentSession.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+                const xpEarned = (totalExercises * 10) + (totalSets * 5);
+                toast.success(`Workout completed! +${xpEarned} XP earned from ${totalExercises} exercises and ${totalSets} sets!`);
                 if (onComplete) onComplete();
               }}
               className="w-full"

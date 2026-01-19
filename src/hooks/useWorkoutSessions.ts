@@ -127,6 +127,7 @@ export const useWorkoutSessions = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workout_sessions', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      toast.success('Ready to log your workout!');
     },
     onError: (error: Error) => {
       toast.error(`Failed to create session: ${error.message}`);
