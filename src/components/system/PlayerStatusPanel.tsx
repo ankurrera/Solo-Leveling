@@ -1,4 +1,6 @@
 import { Shield, Zap } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
+import { useWorkoutSessions } from "@/hooks/useWorkoutSessions";
 
 interface StatBarProps {
   label: string;
@@ -31,20 +33,39 @@ const StatBar = ({ label, value, maxValue, delay = 0 }: StatBarProps) => {
 };
 
 const PlayerStatusPanel = () => {
-  // Mock data - would come from server
+  const { profile, isLoading } = useProfile();
+  const { sessions, calculateStats } = useWorkoutSessions();
+  
+  if (isLoading) {
+    return (
+      <div className="system-panel p-5">
+        <div className="flex items-center justify-center py-8">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  const stats = calculateStats(sessions);
+  const level = profile?.level || 1;
+  const currentXP = profile?.xp || 0;
+  const xpForNextLevel = level * 100;
+  
+  // Calculate stats based on session data
+  const strength = Math.min(100, Math.floor(stats.totalSessions * 2 + 30)); // Base 30 + growth
+  const endurance = Math.min(100, Math.floor(stats.totalHours * 3 + 25)); // Based on time
+  const recovery = Math.min(100, Math.floor(stats.recentSessionCount * 5 + 35)); // Recent activity
+  const consistency = Math.min(100, Math.round(stats.consistency));
+  
   const playerData = {
-    level: 1,
-    rank: "E",
-    class: "Hunter",
+    level,
+    rank: profile?.rank || "E",
+    class: profile?.player_class || "Hunter",
     stats: {
-      strength: 45,
-      endurance: 38,
-      recovery: 52,
-      consistency: 67,
-    },
-    financial: {
-      current: 1.1,
-      max: 500,
+      strength,
+      endurance,
+      recovery,
+      consistency,
     }
   };
 
@@ -109,23 +130,33 @@ const PlayerStatusPanel = () => {
 
       {/* Financial/XP Section */}
       <div className="mt-6 pt-4 border-t border-border/50">
-        <div className="text-xs text-muted-foreground mb-1">Financial</div>
+        <div className="text-xs text-muted-foreground mb-1">Experience Points</div>
         <div className="flex items-baseline gap-1">
-          <span className="text-accent text-lg font-bold">0</span>
-          <span className="text-2xl font-bold text-foreground">{playerData.financial.current}</span>
-          <span className="text-muted-foreground">/{playerData.financial.max}</span>
+          <span className="text-2xl font-bold text-foreground">{currentXP}</span>
+          <span className="text-muted-foreground">/{xpForNextLevel}</span>
+        </div>
+        <div className="mt-2">
+          <StatBar 
+            label="XP TO NEXT LEVEL" 
+            value={currentXP} 
+            maxValue={xpForNextLevel}
+            delay={500}
+          />
         </div>
         
         {/* Additional stats rows */}
         <div className="mt-3 space-y-2">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Planning</span>
-            <span className="text-foreground">500</span>
+            <span className="text-muted-foreground">Total Workouts</span>
+            <span className="text-foreground">{stats.totalSessions}</span>
           </div>
-          <StatBar label="LEARNING" value={60} maxValue={100} delay={400} />
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Creativity</span>
-            <span className="text-foreground">500</span>
+            <span className="text-muted-foreground">Total XP Earned</span>
+            <span className="text-foreground">{stats.totalXP}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Training Hours</span>
+            <span className="text-foreground">{stats.totalHours}h</span>
           </div>
         </div>
       </div>
