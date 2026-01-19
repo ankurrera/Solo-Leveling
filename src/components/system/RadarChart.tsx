@@ -1,24 +1,30 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import { useStats } from "@/hooks/useStats";
 
 const RadarChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { stats, isLoading } = useStats();
 
-  // Build data array from stats
-  const data = stats ? [
-    { label: "STR", value: stats.strength },
-    { label: "END", value: stats.endurance },
-    { label: "MOB", value: stats.mobility },
-    { label: "REC", value: stats.recovery },
-    { label: "CON", value: stats.consistency },
-  ] : [
-    { label: "STR", value: 30 },
-    { label: "END", value: 25 },
-    { label: "MOB", value: 30 },
-    { label: "REC", value: 50 },
-    { label: "CON", value: 0 },
-  ];
+  // Build data array from stats - memoized to prevent unnecessary re-renders
+  const data = useMemo(() => {
+    if (!stats) {
+      return [
+        { label: "STR", value: 30 },
+        { label: "END", value: 25 },
+        { label: "MOB", value: 30 },
+        { label: "REC", value: 50 },
+        { label: "CON", value: 0 },
+      ];
+    }
+    
+    return [
+      { label: "STR", value: stats.strength },
+      { label: "END", value: stats.endurance },
+      { label: "MOB", value: stats.mobility },
+      { label: "REC", value: stats.recovery },
+      { label: "CON", value: stats.consistency },
+    ];
+  }, [stats]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
