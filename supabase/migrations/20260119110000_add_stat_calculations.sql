@@ -174,7 +174,7 @@ DECLARE
   mobility_from_sessions INTEGER;
   final_mobility INTEGER;
 BEGIN
-  -- Count unique exercise names
+  // Count unique exercise names
   SELECT COUNT(DISTINCT LOWER(exercise_name)) INTO unique_exercises
   FROM public.session_exercises se
   INNER JOIN public.workout_sessions ws ON ws.id = se.session_id
@@ -194,6 +194,11 @@ BEGIN
   RETURN LEAST(100, final_mobility);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- Add functional index for case-insensitive exercise name searches
+-- This improves performance of the mobility stat calculation
+CREATE INDEX IF NOT EXISTS idx_session_exercises_lower_name 
+  ON public.session_exercises (LOWER(exercise_name));
 
 -- Function to calculate all stats at once
 CREATE OR REPLACE FUNCTION public.calculate_user_stats(user_id_param UUID)

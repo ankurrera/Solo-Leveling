@@ -13,14 +13,16 @@ const GoalPanel = () => {
   
   const recentSessions = sessions.filter(s => new Date(s.session_date) > weekAgo);
   
-  // Map to week days (0 = Sunday)
+  // Create a Set of session date strings for O(1) lookup
+  const sessionDateSet = new Set(
+    recentSessions.map(s => new Date(s.session_date).toDateString())
+  );
+  
+  // Map to week days (0 = Sunday) - now O(7) instead of O(n*7)
   const weekProgress = [0, 1, 2, 3, 4, 5, 6].map(dayOffset => {
     const date = new Date(weekAgo);
     date.setDate(weekAgo.getDate() + dayOffset);
-    return recentSessions.some(s => {
-      const sessionDate = new Date(s.session_date);
-      return sessionDate.toDateString() === date.toDateString();
-    });
+    return sessionDateSet.has(date.toDateString());
   });
 
   const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
@@ -29,6 +31,11 @@ const GoalPanel = () => {
   const thirtyFiveDaysAgo = new Date(now);
   thirtyFiveDaysAgo.setDate(now.getDate() - 35);
   const oldSessions = sessions.filter(s => new Date(s.session_date) > thirtyFiveDaysAgo);
+  
+  // Create a Set for O(1) lookup
+  const oldSessionDateSet = new Set(
+    oldSessions.map(s => new Date(s.session_date).toDateString())
+  );
   
   // Create 5 weeks of calendar data
   const calendarWeeks: (number | null)[][] = [];
@@ -42,10 +49,7 @@ const GoalPanel = () => {
         weekData.push(null);
       } else {
         const dayNum = date.getDate();
-        const hasSession = oldSessions.some(s => {
-          const sessionDate = new Date(s.session_date);
-          return sessionDate.toDateString() === date.toDateString();
-        });
+        const hasSession = oldSessionDateSet.has(date.toDateString());
         weekData.push(hasSession ? dayNum : null);
       }
     }

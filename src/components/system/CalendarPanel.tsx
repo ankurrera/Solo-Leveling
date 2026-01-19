@@ -19,9 +19,14 @@ const CalendarPanel = () => {
   // Load training days for current month
   useEffect(() => {
     const loadTrainingDays = async () => {
-      const calendar = await getTrainingCalendar(currentYear, currentDate.getMonth() + 1);
-      const days = calendar.map(d => d.day_of_month);
-      setTrainingDays(days);
+      try {
+        const calendar = await getTrainingCalendar(currentYear, currentDate.getMonth() + 1);
+        const days = calendar.map(d => d.day_of_month);
+        setTrainingDays(days);
+      } catch (error) {
+        console.error('Failed to load training calendar:', error);
+        setTrainingDays([]); // Set empty array on error
+      }
     };
     loadTrainingDays();
   }, [currentDate, getTrainingCalendar, currentYear]);

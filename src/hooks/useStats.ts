@@ -103,9 +103,11 @@ export const useStats = () => {
     behaviorPatterns: behaviorPatternsQuery.data,
     isLoading: statsQuery.isLoading || behaviorPatternsQuery.isLoading,
     getTrainingCalendar,
-    refetchStats: () => {
-      statsQuery.refetch();
-      behaviorPatternsQuery.refetch();
+    refetchStats: async () => {
+      await Promise.all([
+        statsQuery.refetch(),
+        behaviorPatternsQuery.refetch()
+      ]);
     }
   };
 };

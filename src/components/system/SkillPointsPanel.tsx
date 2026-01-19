@@ -18,19 +18,23 @@ const SkillPointsPanel = () => {
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const recentSessions = sessions.filter(s => new Date(s.session_date) > thirtyDaysAgo);
   
-  // Group sessions by day and create bar chart data (show up to 6 bars)
-  const sessionsByDay = recentSessions.reduce((acc, session) => {
-    const day = new Date(session.session_date).getDate();
-    acc[day] = (acc[day] || 0) + 1;
+  // Group sessions by full date (YYYY-MM-DD) to avoid collision across months
+  const sessionsByDate = recentSessions.reduce((acc, session) => {
+    const date = new Date(session.session_date);
+    const dateKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+    acc[dateKey] = (acc[dateKey] || 0) + 1;
     return acc;
-  }, {} as Record<number, number>);
+  }, {} as Record<string, number>);
 
-  // Convert to array and take last 6 days with workouts
-  const skillBars = Object.entries(sessionsByDay)
-    .map(([day, count]) => ({
-      day: parseInt(day),
-      value: Math.min(100, count * 30) // Scale: 1 session = 30%, 3+ sessions = 100%
-    }))
+  // Convert to array and take last 6 dates with workouts, showing day of month
+  const skillBars = Object.entries(sessionsByDate)
+    .map(([dateKey, count]) => {
+      const [year, month, day] = dateKey.split('-').map(Number);
+      return {
+        day,
+        value: Math.min(100, count * 30) // Scale: 1 session = 30%, 3+ sessions = 100%
+      };
+    })
     .sort((a, b) => a.day - b.day)
     .slice(-6);
 
