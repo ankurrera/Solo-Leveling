@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import SystemHeader from "@/components/system/SystemHeader";
 import PlayerStatusPanel from "@/components/system/PlayerStatusPanel";
 import RadarChart from "@/components/system/RadarChart";
@@ -6,8 +9,30 @@ import CalendarPanel from "@/components/system/CalendarPanel";
 import GoalPanel from "@/components/system/GoalPanel";
 import PotionsPanel from "@/components/system/PotionsPanel";
 import CornerDecoration from "@/components/system/CornerDecoration";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
   const radarData = [
     { label: "STR", value: 65 },
     { label: "END", value: 55 },
@@ -27,6 +52,15 @@ const Index = () => {
 
       {/* Main Content */}
       <div className="relative z-20 max-w-7xl mx-auto px-4 pb-12">
+        {/* Profile Link */}
+        <div className="absolute top-4 right-4 z-30">
+          <Link to="/profile">
+            <Button variant="ghost" size="icon" className="hover-glow text-muted-foreground hover:text-primary">
+              <Settings className="w-6 h-6" />
+            </Button>
+          </Link>
+        </div>
+        
         {/* Header */}
         <SystemHeader />
 
