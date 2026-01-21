@@ -17,8 +17,9 @@ export interface WorkoutSession {
   created_at: string;
   updated_at: string;
   routine_id: string | null;
-  start_time: string | null;
+  start_time: string; // NOT NULL - server timestamp when workout starts
   end_time: string | null;
+  status: 'active' | 'paused' | 'completed'; // Session status
 }
 
 export interface SessionExercise {
