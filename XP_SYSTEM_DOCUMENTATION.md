@@ -2,16 +2,28 @@
 
 ## Overview
 
-The Solo Leveling XP calculation system rewards users based on objective training difficulty, not arbitrary metrics like session count or button presses. XP represents **training stress and adaptation potential**.
+The Solo Leveling XP calculation system rewards users based on objective training difficulty, not arbitrary metrics like session count or button presses. XP represents **training stress and adaptation potential** normalized by bodyweight to ensure fair progression across different body sizes.
 
 ## Core Principles
 
-1. **XP scales with objective effort** - Harder workouts = more XP
+1. **XP scales with relative effort** - XP is normalized by bodyweight, making progression fair across different body sizes
 2. **No flat XP** - Every workout is calculated based on actual work performed
 3. **No cosmetic rewards** - Only genuine training metrics count
-4. **Anti-exploitation** - System cannot be gamed by volume spam or button abuse
+4. **Anti-exploitation** - System cannot be gamed by volume spam, button abuse, or fake bodyweight entries
 
 ## XP Calculation Formula
+
+### Step 0: Bodyweight Normalization
+```
+effective_bodyweight = clamp(bodyweight_kg, 50, 120)
+default_bodyweight = 70 kg (if not provided)
+```
+Bodyweight is clamped to prevent exploitation:
+- **Minimum**: 50 kg
+- **Maximum**: 120 kg
+- **Default**: 70 kg (when not recorded)
+
+This ensures a lighter lifter training hard can earn comparable XP to a heavier lifter training hard.
 
 ### Step 1: Total Volume
 ```
@@ -35,16 +47,19 @@ work_density = total_volume / session_duration_minutes
 ```
 Measures how demanding the session was. Dense workouts with little rest score higher.
 
-### Step 4: Base XP
+### Step 4: Base XP (Bodyweight-Normalized)
 ```
-base_xp = (√total_volume × 0.5 + work_density × 0.4 + duration × 0.3) × intensity_factor
+relative_volume = total_volume / effective_bodyweight
+base_xp = (√relative_volume × 1.5 + work_density × 0.4 + duration × 0.3) × intensity_factor
 ```
 
 Properties:
+- XP represents relative effort, not absolute load
 - Heavy + dense workouts score higher
 - Long but lazy sessions score lower
 - No single variable dominates
 - Square root prevents volume spam
+- **Fairness**: A 60kg lifter lifting 3,000kg and a 90kg lifter lifting 4,500kg earn similar XP
 
 ### Step 5: Fatigue Modifier (Anti-Overtraining)
 Training while fatigued is less effective:
