@@ -13,6 +13,7 @@ import WorkoutSessionForm from "@/components/system/WorkoutSessionForm";
 import SessionHistory from "@/components/system/SessionHistory";
 import { Button } from "@/components/ui/button";
 import { Settings, Dumbbell, Menu } from "lucide-react";
+import { toast } from "sonner";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -63,9 +64,7 @@ const Index = () => {
             variant="ghost" 
             size="icon" 
             className="hover-glow text-muted-foreground hover:text-primary"
-            onClick={() => {
-              // TODO: Implement menu/navigation drawer functionality
-            }}
+            onClick={() => toast.info("Menu feature coming soon")}
           >
             <Menu className="w-6 h-6" />
           </Button>
