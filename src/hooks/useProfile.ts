@@ -12,6 +12,7 @@ export interface Profile {
   level: number | null;
   xp: number | null;
   fatigue_level: number | null;
+  bodyweight_kg: number | null;
   bio: string | null;
   created_at: string;
   updated_at: string;
