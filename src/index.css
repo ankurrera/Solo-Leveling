@@ -201,7 +201,8 @@
   }
 
   .segmented-xp-fill {
-    @apply h-full transition-all duration-1500 ease-out relative;
+    @apply h-full relative;
+    transition: width 1500ms ease-out;
     background: linear-gradient(
       90deg,
       hsl(270 80% 50%) 0%,
