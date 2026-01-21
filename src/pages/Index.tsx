@@ -59,7 +59,12 @@ const Index = () => {
               <Settings className="w-6 h-6" />
             </Button>
           </Link>
-          <Button variant="ghost" size="icon" className="hover-glow text-muted-foreground hover:text-primary">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover-glow text-muted-foreground hover:text-primary"
+            onClick={() => console.log('Menu clicked - functionality to be implemented')}
+          >
             <Menu className="w-6 h-6" />
           </Button>
         </div>
