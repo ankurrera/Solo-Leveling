@@ -19,13 +19,8 @@ END $$;
 CREATE OR REPLACE FUNCTION update_session_duration()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Set start_time to server time if not provided (for INSERT)
-  IF TG_OP = 'INSERT' AND NEW.start_time IS NULL THEN
-    NEW.start_time := now();
-  END IF;
-  
-  -- Override end_time with server time when it's being set
-  -- This ensures we use server clock, not client clock
+  -- Override end_time with server time when it's being set from NULL
+  -- This ensures we always use server clock, not client clock
   IF TG_OP = 'UPDATE' AND NEW.end_time IS NOT NULL AND OLD.end_time IS NULL THEN
     NEW.end_time := now();
   END IF;

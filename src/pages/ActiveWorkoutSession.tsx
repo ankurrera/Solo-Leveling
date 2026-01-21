@@ -312,11 +312,11 @@ const ActiveWorkoutSession = () => {
       );
 
       // Update session with completion data
-      // end_time will be overridden by database trigger with server time
+      // Client provides any end_time value; database trigger replaces it with server time
       updateSession(
         {
           id: sessionId,
-          end_time: new Date().toISOString(), // Trigger signal - will be overridden by DB with server time
+          end_time: new Date().toISOString(), // Will be replaced by DB trigger with server now()
           is_completed: true,
           completion_time: new Date().toISOString(),
           total_xp_earned: earnedXP,

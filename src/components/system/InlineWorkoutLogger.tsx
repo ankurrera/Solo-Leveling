@@ -543,11 +543,11 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                 );
 
                 // Update session with completion and XP
-                // end_time will be overridden by database trigger with server time
+                // Client provides any end_time value; database trigger replaces it with server time
                 updateSession(
                   {
                     id: currentSession.id,
-                    end_time: new Date().toISOString(), // Trigger signal - will be overridden by DB with server time
+                    end_time: new Date().toISOString(), // Will be replaced by DB trigger with server now()
                     total_xp_earned: xp,
                     is_completed: true,
                     completion_time: new Date().toISOString()
