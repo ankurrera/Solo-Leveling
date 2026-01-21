@@ -246,6 +246,7 @@
 
   /* Player Header Text */
   .player-header-text {
+    color: hsl(270, 80%, 65%); /* Fallback for browsers without background-clip support */
     background: linear-gradient(
       135deg,
       hsl(270 80% 60%) 0%,
@@ -273,6 +274,16 @@
   /* Level Badge */
   .level-badge {
     animation: level-pulse 2s ease-in-out infinite;
+  }
+
+  /* Respect user motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    .player-header-text,
+    .level-badge,
+    .segmented-xp-fill,
+    .rpg-progress-fill {
+      animation: none;
+    }
   }
 
   /* Glowing border effect */
