@@ -1,5 +1,3 @@
-
-
 const SystemHeader = () => {
   return (
     <header className="relative py-8 px-6">

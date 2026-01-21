@@ -63,7 +63,9 @@ const Index = () => {
             variant="ghost" 
             size="icon" 
             className="hover-glow text-muted-foreground hover:text-primary"
-            onClick={() => console.log('Menu clicked - functionality to be implemented')}
+            onClick={() => {
+              // TODO: Implement menu/navigation drawer functionality
+            }}
           >
             <Menu className="w-6 h-6" />
           </Button>
