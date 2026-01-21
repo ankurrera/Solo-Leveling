@@ -16,6 +16,9 @@ export interface WorkoutSession {
   completion_time: string | null;
   created_at: string;
   updated_at: string;
+  routine_id: string | null;
+  start_time: string | null;
+  end_time: string | null;
 }
 
 export interface SessionExercise {

@@ -12,7 +12,7 @@ import CornerDecoration from "@/components/system/CornerDecoration";
 import WorkoutSessionForm from "@/components/system/WorkoutSessionForm";
 import SessionHistory from "@/components/system/SessionHistory";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, Dumbbell } from "lucide-react";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -48,7 +48,12 @@ const Index = () => {
       {/* Main Content */}
       <div className="relative z-20 max-w-7xl mx-auto px-4 pb-12">
         {/* Profile Link */}
-        <div className="absolute top-4 right-4 z-30">
+        <div className="absolute top-4 right-4 z-30 flex gap-2">
+          <Link to="/routines">
+            <Button variant="ghost" size="icon" className="hover-glow text-muted-foreground hover:text-primary">
+              <Dumbbell className="w-6 h-6" />
+            </Button>
+          </Link>
           <Link to="/profile">
             <Button variant="ghost" size="icon" className="hover-glow text-muted-foreground hover:text-primary">
               <Settings className="w-6 h-6" />
