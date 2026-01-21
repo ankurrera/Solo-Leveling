@@ -179,9 +179,9 @@ export function calculateSessionXP(
   consistencyData: ConsistencyData = { sessions_this_week: 0 },
   bodyweightData: BodyweightData = {}
 ): number {
-  // Validate completion requirements
-  if (workoutData.duration_minutes < 20) {
-    return 0; // Session must be at least 20 minutes
+  // Validate completion requirements - only check for valid duration and volume
+  if (workoutData.duration_minutes <= 0) {
+    return 0; // Session must have positive duration
   }
   
   const totalVolume = calculateTotalVolume(workoutData.sets);
