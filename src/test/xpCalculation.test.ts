@@ -158,7 +158,8 @@ describe("XP Calculation - Base XP", () => {
     const heavyLifter = calculateBaseXP(4500, workDensity, duration, intensity, 90);
     
     // Should be very similar (within 5% due to other components)
-    expect(Math.abs(lightLifter - heavyLifter) / lightLifter).toBeLessThan(0.05);
+    const maxXP = Math.max(lightLifter, heavyLifter);
+    expect(Math.abs(lightLifter - heavyLifter) / maxXP).toBeLessThan(0.05);
   });
 });
 

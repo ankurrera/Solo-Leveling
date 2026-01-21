@@ -38,6 +38,11 @@ const DEFAULT_BODYWEIGHT_KG = 70;
 const MIN_BODYWEIGHT_KG = 50;
 const MAX_BODYWEIGHT_KG = 120;
 
+// Constants for XP calculation formula
+const VOLUME_COEFFICIENT = 1.5;
+const DENSITY_COEFFICIENT = 0.4;
+const DURATION_COEFFICIENT = 0.3;
+
 /**
  * Clamp bodyweight to prevent exploitation
  * Uses effective range of 50-120 kg to avoid:
@@ -100,7 +105,7 @@ export function calculateWorkDensity(totalVolume: number, durationMinutes: numbe
 
 /**
  * STEP 4 - Calculate Base XP from Effort
- * base_xp = (sqrt(relative_volume) × 1.5 + work_density × 0.4 + session_duration_minutes × 0.3) × intensity_factor
+ * base_xp = (sqrt(relative_volume) × VOLUME_COEFFICIENT + work_density × DENSITY_COEFFICIENT + session_duration_minutes × DURATION_COEFFICIENT) × intensity_factor
  * 
  * relative_volume = total_volume / bodyweight_kg
  * 
@@ -121,9 +126,9 @@ export function calculateBaseXP(
   // Calculate relative volume (bodyweight-normalized)
   const relativeVolume = totalVolume / bodyweightKg;
   
-  const volumeComponent = Math.sqrt(relativeVolume) * 1.5;
-  const densityComponent = workDensity * 0.4;
-  const durationComponent = durationMinutes * 0.3;
+  const volumeComponent = Math.sqrt(relativeVolume) * VOLUME_COEFFICIENT;
+  const densityComponent = workDensity * DENSITY_COEFFICIENT;
+  const durationComponent = durationMinutes * DURATION_COEFFICIENT;
   
   return (volumeComponent + densityComponent + durationComponent) * intensityFactor;
 }
