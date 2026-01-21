@@ -164,10 +164,10 @@ const CreateRoutineDialog = ({ open, onOpenChange }: CreateRoutineDialogProps) =
     }
     
     // Sort by difficulty: Beginner → Intermediate → Advanced
-    const difficultyOrder = { B: 1, I: 2, A: 3 };
+    const difficultyOrder: Record<string, number> = { B: 1, I: 2, A: 3 };
     exercises.sort((a, b) => {
-      const orderA = difficultyOrder[a.difficulty as keyof typeof difficultyOrder] ?? 999;
-      const orderB = difficultyOrder[b.difficulty as keyof typeof difficultyOrder] ?? 999;
+      const orderA = difficultyOrder[a.difficulty || ''] ?? 999;
+      const orderB = difficultyOrder[b.difficulty || ''] ?? 999;
       return orderA - orderB;
     });
     
@@ -265,34 +265,34 @@ const CreateRoutineDialog = ({ open, onOpenChange }: CreateRoutineDialogProps) =
               <div>
                 <Label>Select Exercises ({selectedExercises.length} selected)</Label>
                 <ScrollArea className="h-[300px] mt-2 border rounded-lg p-4">
-                  <div className="space-y-2">
-                    {filteredExercises.map((exercise) => {
-                      const diffInfo = getDifficultyInfo(exercise.difficulty);
-                      return (
-                        <div
-                          key={exercise.id}
-                          onClick={() => handleExerciseToggle(exercise.id)}
-                          className={`
-                            flex items-start space-x-3 p-3 border rounded-lg cursor-pointer
-                            transition-all duration-200 hover:border-primary/50
-                            ${
-                              selectedExercises.includes(exercise.id)
-                                ? "border-primary bg-primary/10"
-                                : "border-border"
-                            }
-                          `}
-                        >
-                          <Checkbox
-                            checked={selectedExercises.includes(exercise.id)}
-                            onCheckedChange={() => handleExerciseToggle(exercise.id)}
-                            className="mt-1"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <Label className="cursor-pointer font-semibold">
-                                {exercise.name}
-                              </Label>
-                              <TooltipProvider>
+                  <TooltipProvider>
+                    <div className="space-y-2">
+                      {filteredExercises.map((exercise) => {
+                        const diffInfo = getDifficultyInfo(exercise.difficulty);
+                        return (
+                          <div
+                            key={exercise.id}
+                            onClick={() => handleExerciseToggle(exercise.id)}
+                            className={`
+                              flex items-start space-x-3 p-3 border rounded-lg cursor-pointer
+                              transition-all duration-200 hover:border-primary/50
+                              ${
+                                selectedExercises.includes(exercise.id)
+                                  ? "border-primary bg-primary/10"
+                                  : "border-border"
+                              }
+                            `}
+                          >
+                            <Checkbox
+                              checked={selectedExercises.includes(exercise.id)}
+                              onCheckedChange={() => handleExerciseToggle(exercise.id)}
+                              className="mt-1"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <Label className="cursor-pointer font-semibold">
+                                  {exercise.name}
+                                </Label>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Badge variant={diffInfo.variant} className="cursor-help">
@@ -303,25 +303,25 @@ const CreateRoutineDialog = ({ open, onOpenChange }: CreateRoutineDialogProps) =
                                     <p className="text-xs">{diffInfo.description}</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
+                              </div>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {exercise.muscle_groups.map((mg) => (
+                                  <Badge key={mg} variant="outline" className="text-xs">
+                                    {mg}
+                                  </Badge>
+                                ))}
+                              </div>
+                              {exercise.equipment && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {exercise.equipment}
+                                </p>
+                              )}
                             </div>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {exercise.muscle_groups.map((mg) => (
-                                <Badge key={mg} variant="outline" className="text-xs">
-                                  {mg}
-                                </Badge>
-                              ))}
-                            </div>
-                            {exercise.equipment && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                {exercise.equipment}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  </TooltipProvider>
                 </ScrollArea>
               </div>
 
