@@ -179,6 +179,9 @@ User takes long rest between sets:
 - ✅ Duration calculated by database, not client
 - ✅ Trigger enforces consistency between timestamps and duration
 - ✅ User cannot bypass validation by editing duration manually
+- ✅ **DEFAULT value for start_time ensures server time on INSERT**
+- ✅ **Trigger override for end_time ensures server time on UPDATE**
+- ✅ **No redundant timestamp logic - clean separation of concerns**
 
 ## Future Enhancements (Out of Scope)
 - Add pause/resume functionality for workouts

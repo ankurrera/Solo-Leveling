@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { calculateSessionXP, getSystemMessage } from "@/lib/xpCalculation";
+import { formatElapsedTime } from "@/lib/timeUtils";
 import type { ExerciseSet as XPExerciseSet } from "@/lib/xpCalculation";
 
 interface InlineWorkoutLoggerProps {
@@ -477,7 +478,7 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
             <div className="flex-1">
               <label className="text-sm font-medium">Workout in Progress</label>
               <div className="text-2xl font-bold text-primary mt-1">
-                {Math.floor(elapsedSeconds / 3600)}:{String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(2, '0')}:{String(elapsedSeconds % 60).padStart(2, '0')}
+                {formatElapsedTime(elapsedSeconds)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Live elapsed time from start
