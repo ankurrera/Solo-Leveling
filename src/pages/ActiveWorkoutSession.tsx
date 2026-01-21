@@ -16,6 +16,10 @@ import { calculateSessionXP } from "@/lib/xpCalculation";
 import type { Exercise } from "@/hooks/useExercises";
 import type { RoutineWithExercises } from "@/hooks/useRoutines";
 
+// Configuration constants
+const MIN_WORKOUT_DURATION_MINUTES = 20;
+const AUTOSAVE_DEBOUNCE_MS = 2000;
+
 interface ExerciseSetData {
   exercise_id: string;
   set_number: number;
@@ -50,6 +54,15 @@ const ActiveWorkoutSession = () => {
 
   const sessionCreationInitiated = useRef(false);
   const autosaveTimeouts = useRef<Record<string, NodeJS.Timeout>>({});
+  const savedSets = useRef<Set<string>>(new Set());
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all pending autosave timeouts
+      Object.values(autosaveTimeouts.current).forEach(clearTimeout);
+    };
+  }, []);
 
   // Load routine and create session
   useEffect(() => {
@@ -141,6 +154,10 @@ const ActiveWorkoutSession = () => {
 
       if (isNaN(weight) || isNaN(reps) || reps <= 0) return;
 
+      // Check if this set was already saved to prevent duplicates
+      const setKey = `${exerciseId}-${setData.set_number}-${weight}-${reps}`;
+      if (savedSets.current.has(setKey)) return;
+
       setIsSaving((prev) => ({ ...prev, [`${exerciseId}-${setIndex}`]: true }));
 
       try {
@@ -152,6 +169,9 @@ const ActiveWorkoutSession = () => {
           reps: reps,
           rest_time_seconds: setData.rest_time_seconds,
         });
+
+        // Mark as saved
+        savedSets.current.add(setKey);
 
         // Store in local storage as backup
         const backupKey = `workout_backup_${sessionId}`;
@@ -179,7 +199,7 @@ const ActiveWorkoutSession = () => {
       // Schedule new autosave
       autosaveTimeouts.current[key] = setTimeout(() => {
         autosaveSet(exerciseId, setIndex);
-      }, 2000); // 2 second debounce
+      }, AUTOSAVE_DEBOUNCE_MS);
     },
     [autosaveSet]
   );
@@ -247,8 +267,8 @@ const ActiveWorkoutSession = () => {
     const durationMinutes = Math.floor(elapsedSeconds / 60);
 
     // Validation
-    if (durationMinutes < 20) {
-      toast.error("Workout must be at least 20 minutes long");
+    if (durationMinutes < MIN_WORKOUT_DURATION_MINUTES) {
+      toast.error(`Workout must be at least ${MIN_WORKOUT_DURATION_MINUTES} minutes long`);
       return;
     }
 

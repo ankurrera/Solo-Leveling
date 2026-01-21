@@ -51,7 +51,7 @@ ALTER TABLE public.workout_sessions
 ADD COLUMN routine_id UUID REFERENCES public.routines(id) ON DELETE SET NULL,
 ADD COLUMN start_time TIMESTAMP WITH TIME ZONE,
 ADD COLUMN end_time TIMESTAMP WITH TIME ZONE,
-ADD COLUMN is_completed BOOLEAN DEFAULT false;
+ADD COLUMN is_completed BOOLEAN DEFAULT false; -- Explicit completion flag, distinct from completion_time which is for audit trail
 
 -- Enable Row Level Security
 ALTER TABLE public.muscle_groups ENABLE ROW LEVEL SECURITY;
