@@ -94,7 +94,8 @@ const ActiveWorkoutSession = () => {
             duration_minutes: null,
             notes: null,
             routine_id: routineId,
-            start_time: null, // Will be set by database default to server time
+            status: 'active' as const, // Start as active
+            // start_time will be set by database default to server time (now())
           },
           {
             onSuccess: (session) => {
@@ -312,12 +313,13 @@ const ActiveWorkoutSession = () => {
       );
 
       // Update session with completion data
-      // Client provides any end_time value; database trigger replaces it with server time
+      // Set status to 'completed' - database trigger will set end_time to server now()
+      // and calculate duration_minutes automatically
       updateSession(
         {
           id: sessionId,
-          end_time: new Date().toISOString(), // Will be replaced by DB trigger with server now()
-          is_completed: true,
+          status: 'completed' as const, // Trigger will set end_time=now() and calculate duration
+          is_completed: true, // Legacy field for backward compatibility
           completion_time: new Date().toISOString(),
           total_xp_earned: earnedXP,
         },

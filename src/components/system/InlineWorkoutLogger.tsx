@@ -70,7 +70,8 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
           session_date: new Date().toISOString(), // Client date for UI display
           duration_minutes: null,
           notes: null,
-          start_time: null // Will be set by database default (now())
+          status: 'active' as const, // Start as active
+          // start_time will be set by database default to server time (now())
         },
         {
           onSuccess: async (session) => {
@@ -544,13 +545,14 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                 );
 
                 // Update session with completion and XP
-                // Client provides any end_time value; database trigger replaces it with server time
+                // Set status to 'completed' - database trigger will set end_time to server now()
+                // and calculate duration_minutes automatically
                 updateSession(
                   {
                     id: currentSession.id,
-                    end_time: new Date().toISOString(), // Will be replaced by DB trigger with server now()
+                    status: 'completed' as const, // Trigger will set end_time=now() and calculate duration
                     total_xp_earned: xp,
-                    is_completed: true,
+                    is_completed: true, // Legacy field for backward compatibility
                     completion_time: new Date().toISOString()
                   },
                   {
