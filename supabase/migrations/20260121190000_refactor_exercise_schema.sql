@@ -43,7 +43,7 @@ BEGIN
     WHERE table_schema = 'public' 
     AND table_name = 'exercises' 
     AND column_name = 'difficulty'
-    AND data_type = 'character'
+    AND (data_type = 'character' OR udt_name = 'bpchar')
   ) THEN
     -- First drop the old difficulty column if it exists as TEXT
     IF EXISTS (
@@ -128,6 +128,10 @@ CREATE INDEX IF NOT EXISTS idx_exercise_equipment_equipment_id
 -- ============================================
 -- 8. CLEAR EXISTING DATA (Idempotent)
 -- ============================================
+-- WARNING: This will delete all existing exercise data!
+-- The migration re-seeds with the complete exercise dataset from the problem statement.
+-- If you have custom exercises or user data dependent on exercises, back up before running.
+
 -- Clear junction tables first (foreign key constraints)
 TRUNCATE TABLE public.exercise_equipment CASCADE;
 TRUNCATE TABLE public.exercise_muscle_groups CASCADE;
