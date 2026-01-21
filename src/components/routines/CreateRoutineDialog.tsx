@@ -13,20 +13,64 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { toast } from "sonner";
 import { useExercises } from "@/hooks/useExercises";
 import { useRoutines } from "@/hooks/useRoutines";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, Info } from "lucide-react";
 
 interface CreateRoutineDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+// Helper function to get difficulty display info
+const getDifficultyInfo = (difficulty: string | null) => {
+  switch (difficulty) {
+    case "B":
+      return {
+        label: "Beginner",
+        variant: "beginner" as const,
+        description: "Low technical complexity",
+      };
+    case "I":
+      return {
+        label: "Intermediate",
+        variant: "intermediate" as const,
+        description: "Moderate load & control",
+      };
+    case "A":
+      return {
+        label: "Advanced",
+        variant: "advanced" as const,
+        description: "High load, stability, injury risk",
+      };
+    default:
+      return {
+        label: "Unknown",
+        variant: "outline" as const,
+        description: "Difficulty not specified",
+      };
+  }
+};
+
 const CreateRoutineDialog = ({ open, onOpenChange }: CreateRoutineDialogProps) => {
   const [step, setStep] = useState<"muscle-groups" | "exercises" | "details">("muscle-groups");
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+  const [difficultyFilter, setDifficultyFilter] = useState<string>("all");
   const [routineName, setRoutineName] = useState("");
   const [description, setDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +84,7 @@ const CreateRoutineDialog = ({ open, onOpenChange }: CreateRoutineDialogProps) =
       setStep("muscle-groups");
       setSelectedMuscleGroups([]);
       setSelectedExercises([]);
+      setDifficultyFilter("all");
       setRoutineName("");
       setDescription("");
     }
@@ -109,7 +154,25 @@ const CreateRoutineDialog = ({ open, onOpenChange }: CreateRoutineDialogProps) =
     }
   };
 
-  const filteredExercises = getExercisesByMuscleGroups(selectedMuscleGroups);
+  // Get exercises filtered by muscle groups and difficulty, then sorted by difficulty
+  const filteredExercises = (() => {
+    let exercises = getExercisesByMuscleGroups(selectedMuscleGroups);
+    
+    // Apply difficulty filter
+    if (difficultyFilter !== "all") {
+      exercises = exercises.filter((ex) => ex.difficulty === difficultyFilter);
+    }
+    
+    // Sort by difficulty: Beginner → Intermediate → Advanced
+    const difficultyOrder = { B: 1, I: 2, A: 3 };
+    exercises.sort((a, b) => {
+      const orderA = difficultyOrder[a.difficulty as keyof typeof difficultyOrder] ?? 999;
+      const orderB = difficultyOrder[b.difficulty as keyof typeof difficultyOrder] ?? 999;
+      return orderA - orderB;
+    });
+    
+    return exercises;
+  })();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -185,47 +248,79 @@ const CreateRoutineDialog = ({ open, onOpenChange }: CreateRoutineDialogProps) =
               </div>
 
               <div>
+                <Label>Filter by Difficulty</Label>
+                <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                  <SelectTrigger className="w-full mt-2">
+                    <SelectValue placeholder="All difficulties" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Difficulties</SelectItem>
+                    <SelectItem value="B">Beginner Only</SelectItem>
+                    <SelectItem value="I">Intermediate Only</SelectItem>
+                    <SelectItem value="A">Advanced Only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <Label>Select Exercises ({selectedExercises.length} selected)</Label>
                 <ScrollArea className="h-[300px] mt-2 border rounded-lg p-4">
                   <div className="space-y-2">
-                    {filteredExercises.map((exercise) => (
-                      <div
-                        key={exercise.id}
-                        onClick={() => handleExerciseToggle(exercise.id)}
-                        className={`
-                          flex items-start space-x-3 p-3 border rounded-lg cursor-pointer
-                          transition-all duration-200 hover:border-primary/50
-                          ${
-                            selectedExercises.includes(exercise.id)
-                              ? "border-primary bg-primary/10"
-                              : "border-border"
-                          }
-                        `}
-                      >
-                        <Checkbox
-                          checked={selectedExercises.includes(exercise.id)}
-                          onCheckedChange={() => handleExerciseToggle(exercise.id)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <Label className="cursor-pointer font-semibold">
-                            {exercise.name}
-                          </Label>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {exercise.muscle_groups.map((mg) => (
-                              <Badge key={mg} variant="outline" className="text-xs">
-                                {mg}
-                              </Badge>
-                            ))}
+                    {filteredExercises.map((exercise) => {
+                      const diffInfo = getDifficultyInfo(exercise.difficulty);
+                      return (
+                        <div
+                          key={exercise.id}
+                          onClick={() => handleExerciseToggle(exercise.id)}
+                          className={`
+                            flex items-start space-x-3 p-3 border rounded-lg cursor-pointer
+                            transition-all duration-200 hover:border-primary/50
+                            ${
+                              selectedExercises.includes(exercise.id)
+                                ? "border-primary bg-primary/10"
+                                : "border-border"
+                            }
+                          `}
+                        >
+                          <Checkbox
+                            checked={selectedExercises.includes(exercise.id)}
+                            onCheckedChange={() => handleExerciseToggle(exercise.id)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <Label className="cursor-pointer font-semibold">
+                                {exercise.name}
+                              </Label>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge variant={diffInfo.variant} className="cursor-help">
+                                      {diffInfo.label}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="text-xs">{diffInfo.description}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {exercise.muscle_groups.map((mg) => (
+                                <Badge key={mg} variant="outline" className="text-xs">
+                                  {mg}
+                                </Badge>
+                              ))}
+                            </div>
+                            {exercise.equipment && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {exercise.equipment}
+                              </p>
+                            )}
                           </div>
-                          {exercise.equipment && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {exercise.equipment}
-                            </p>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </ScrollArea>
               </div>
