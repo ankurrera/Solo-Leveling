@@ -94,7 +94,7 @@ const ActiveWorkoutSession = () => {
             duration_minutes: null,
             notes: null,
             routine_id: routineId,
-            start_time: startTime.toISOString(),
+            start_time: null, // Will be set by database default to server time
           },
           {
             onSuccess: (session) => {
@@ -312,11 +312,11 @@ const ActiveWorkoutSession = () => {
       );
 
       // Update session with completion data
-      // Duration will be auto-calculated by database trigger from timestamps
+      // end_time will be overridden by database trigger with server time
       updateSession(
         {
           id: sessionId,
-          end_time: new Date().toISOString(),
+          end_time: new Date().toISOString(), // Trigger signal - will be overridden by DB with server time
           is_completed: true,
           completion_time: new Date().toISOString(),
           total_xp_earned: earnedXP,

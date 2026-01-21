@@ -3,27 +3,33 @@
 -- ============================================
 -- This migration enables automatic duration calculation from start_time and end_time
 -- Removes the need for manual duration input
+-- Uses server-side timestamps for security and accuracy
 
--- Add a function to calculate duration in minutes from timestamps
-CREATE OR REPLACE FUNCTION calculate_session_duration(
-  p_start_time TIMESTAMP WITH TIME ZONE,
-  p_end_time TIMESTAMP WITH TIME ZONE
-)
-RETURNS NUMERIC AS $$
+-- Add default value for start_time to use server timestamp
+DO $$ 
 BEGIN
-  IF p_start_time IS NULL OR p_end_time IS NULL THEN
-    RETURN NULL;
-  END IF;
-  
-  -- Calculate duration in minutes
-  RETURN EXTRACT(EPOCH FROM (p_end_time - p_start_time)) / 60;
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
+  ALTER TABLE public.workout_sessions 
+    ALTER COLUMN start_time SET DEFAULT now();
+EXCEPTION
+  WHEN others THEN
+    NULL; -- Ignore if already has default
+END $$;
 
--- Add a trigger to automatically calculate duration_minutes when end_time is set
+-- Add a trigger to automatically calculate duration_minutes and ensure server timestamps
 CREATE OR REPLACE FUNCTION update_session_duration()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- Set start_time to server time if not provided (for INSERT)
+  IF TG_OP = 'INSERT' AND NEW.start_time IS NULL THEN
+    NEW.start_time := now();
+  END IF;
+  
+  -- Override end_time with server time when it's being set
+  -- This ensures we use server clock, not client clock
+  IF TG_OP = 'UPDATE' AND NEW.end_time IS NOT NULL AND OLD.end_time IS NULL THEN
+    NEW.end_time := now();
+  END IF;
+  
   -- Automatically calculate duration when end_time is set
   IF NEW.end_time IS NOT NULL AND NEW.start_time IS NOT NULL THEN
     NEW.duration_minutes := ROUND(
