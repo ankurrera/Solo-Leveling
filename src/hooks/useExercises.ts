@@ -4,6 +4,7 @@ import type { Tables } from "@/integrations/supabase/types";
 
 export type Exercise = Tables<"exercises">;
 export type MuscleGroup = Tables<"muscle_groups">;
+export type Equipment = Tables<"equipment">;
 
 export const useExercises = () => {
   // Fetch all exercises
@@ -34,6 +35,20 @@ export const useExercises = () => {
     },
   });
 
+  // Fetch all equipment
+  const { data: equipment, isLoading: equipmentLoading } = useQuery({
+    queryKey: ["equipment"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("equipment")
+        .select("*")
+        .order("name");
+      
+      if (error) throw error;
+      return data as Equipment[];
+    },
+  });
+
   // Function to filter exercises by muscle groups
   const getExercisesByMuscleGroups = (selectedMuscleGroups: string[]): Exercise[] => {
     if (!exercises || selectedMuscleGroups.length === 0) return exercises || [];
@@ -45,10 +60,25 @@ export const useExercises = () => {
     });
   };
 
+  // Function to filter exercises by difficulty
+  const getExercisesByDifficulty = (difficulty: string): Exercise[] => {
+    if (!exercises) return [];
+    return exercises.filter((exercise) => exercise.difficulty === difficulty);
+  };
+
+  // Function to filter cardio exercises
+  const getCardioExercises = (): Exercise[] => {
+    if (!exercises) return [];
+    return exercises.filter((exercise) => exercise.is_cardio === true);
+  };
+
   return {
     exercises,
     muscleGroups,
-    isLoading: exercisesLoading || muscleGroupsLoading,
+    equipment,
+    isLoading: exercisesLoading || muscleGroupsLoading || equipmentLoading,
     getExercisesByMuscleGroups,
+    getExercisesByDifficulty,
+    getCardioExercises,
   };
 };
