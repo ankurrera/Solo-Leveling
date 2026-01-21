@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRoutines } from "@/hooks/useRoutines";
 import { useWorkoutSessions } from "@/hooks/useWorkoutSessions";
 import { useWorkoutSets } from "@/hooks/useWorkoutSets";
+import { useProfile } from "@/hooks/useProfile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Clock, Check, Plus, Minus, ArrowLeft } from "lucide-react";
 import CornerDecoration from "@/components/system/CornerDecoration";
+import { calculateSessionXP } from "@/lib/xpCalculation";
 import type { Exercise } from "@/hooks/useExercises";
 import type { RoutineWithExercises } from "@/hooks/useRoutines";
 
@@ -26,9 +28,10 @@ const ActiveWorkoutSession = () => {
   const { routineId } = useParams<{ routineId: string }>();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { profile } = useProfile();
 
   const { getRoutineWithExercises, markRoutineAsUsedAsync } = useRoutines();
-  const { createSession, updateSession } = useWorkoutSessions();
+  const { createSession, updateSession, sessions } = useWorkoutSessions();
   const { createSetAsync, getSessionSets } = useWorkoutSets();
 
   const [routine, setRoutine] = useState<RoutineWithExercises | null>(null);
@@ -249,8 +252,20 @@ const ActiveWorkoutSession = () => {
       return;
     }
 
-    const totalSets = Object.values(exerciseSets).reduce((sum, sets) => sum + sets.length, 0);
-    if (totalSets === 0) {
+    // Convert exerciseSets to the format expected by XP calculation
+    const allSets = Object.values(exerciseSets)
+      .flat()
+      .filter((set) => {
+        const weight = parseFloat(set.weight_kg);
+        const reps = parseInt(set.reps);
+        return !isNaN(weight) && !isNaN(reps) && reps > 0;
+      })
+      .map((set) => ({
+        weight_kg: parseFloat(set.weight_kg),
+        reps: parseInt(set.reps),
+      }));
+
+    if (allSets.length === 0) {
       toast.error("You must log at least one set");
       return;
     }
@@ -258,6 +273,30 @@ const ActiveWorkoutSession = () => {
     setIsCompleting(true);
 
     try {
+      // Calculate consistency (sessions in last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentSessions = sessions.filter(
+        (s) => new Date(s.session_date) > sevenDaysAgo
+      );
+
+      // Calculate XP using the sophisticated formula
+      const earnedXP = calculateSessionXP(
+        {
+          sets: allSets,
+          duration_minutes: durationMinutes,
+        },
+        {
+          fatigue_level: profile?.fatigue_level || 0,
+        },
+        {
+          sessions_this_week: recentSessions.length,
+        },
+        {
+          bodyweight_kg: profile?.bodyweight_kg,
+        }
+      );
+
       // Update session with completion data
       updateSession(
         {
@@ -266,10 +305,11 @@ const ActiveWorkoutSession = () => {
           duration_minutes: durationMinutes,
           is_completed: true,
           completion_time: new Date().toISOString(),
+          total_xp_earned: earnedXP,
         },
         {
           onSuccess: () => {
-            toast.success("Workout completed! XP calculated.");
+            toast.success(`Workout completed! +${earnedXP} XP earned!`);
             
             // Clear local storage backup
             localStorage.removeItem(`workout_backup_${sessionId}`);
