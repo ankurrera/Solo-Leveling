@@ -11,6 +11,7 @@ import {
   calculateSessionXP,
   getSystemMessage,
   classifyWorkout,
+  clampBodyweight,
   type ExerciseSet,
   type WorkoutData
 } from "../lib/xpCalculation";
@@ -112,22 +113,52 @@ describe("XP Calculation - Work Density", () => {
 });
 
 describe("XP Calculation - Base XP", () => {
-  it("should calculate base XP using the formula", () => {
-    const totalVolume = 2500; // sqrt = 50
+  it("should calculate base XP using the formula with bodyweight normalization", () => {
+    const totalVolume = 2500; // sqrt(2500/70) = sqrt(35.71) ≈ 5.98
     const workDensity = 50;
     const duration = 60;
     const intensity = 1.15;
+    const bodyweight = 70;
     
-    // (50 * 0.5 + 50 * 0.4 + 60 * 0.3) * 1.15
-    // (25 + 20 + 18) * 1.15 = 63 * 1.15 = 72.45
-    const xp = calculateBaseXP(totalVolume, workDensity, duration, intensity);
-    expect(xp).toBeCloseTo(72.45, 1);
+    // (5.98 * 1.5 + 50 * 0.4 + 60 * 0.3) * 1.15
+    // (8.97 + 20 + 18) * 1.15 = 46.97 * 1.15 ≈ 54.01
+    const xp = calculateBaseXP(totalVolume, workDensity, duration, intensity, bodyweight);
+    expect(xp).toBeCloseTo(54.01, 0);
   });
 
   it("should reward heavy + dense workouts", () => {
-    const heavyDense = calculateBaseXP(4900, 80, 60, 1.3);
-    const lightSlow = calculateBaseXP(900, 15, 60, 0.9);
+    const bodyweight = 70;
+    const heavyDense = calculateBaseXP(4900, 80, 60, 1.3, bodyweight);
+    const lightSlow = calculateBaseXP(900, 15, 60, 0.9, bodyweight);
     expect(heavyDense).toBeGreaterThan(lightSlow);
+  });
+  
+  it("should normalize by bodyweight - heavier lifters need more volume for same XP", () => {
+    const volume = 3000;
+    const workDensity = 50;
+    const duration = 60;
+    const intensity = 1.0;
+    
+    const lightLifter = calculateBaseXP(volume, workDensity, duration, intensity, 60);
+    const heavyLifter = calculateBaseXP(volume, workDensity, duration, intensity, 90);
+    
+    // Light lifter should get more XP for same absolute volume
+    expect(lightLifter).toBeGreaterThan(heavyLifter);
+  });
+  
+  it("should give similar XP for proportional volume - fairness test", () => {
+    const workDensity = 50;
+    const duration = 60;
+    const intensity = 1.0;
+    
+    // 60kg lifter with 3000kg volume
+    const lightLifter = calculateBaseXP(3000, workDensity, duration, intensity, 60);
+    
+    // 90kg lifter with 4500kg volume (1.5x more volume for 1.5x bodyweight)
+    const heavyLifter = calculateBaseXP(4500, workDensity, duration, intensity, 90);
+    
+    // Should be very similar (within 5% due to other components)
+    expect(Math.abs(lightLifter - heavyLifter) / lightLifter).toBeLessThan(0.05);
   });
 });
 
@@ -170,6 +201,42 @@ describe("XP Calculation - Consistency Multiplier", () => {
   it("should return 1.25 for 5+ sessions", () => {
     expect(getConsistencyMultiplier(5)).toBe(1.25);
     expect(getConsistencyMultiplier(6)).toBe(1.25);
+  });
+});
+
+describe("XP Calculation - Bodyweight Clamping", () => {
+  it("should use default bodyweight (70kg) when null", () => {
+    expect(clampBodyweight(null)).toBe(70);
+  });
+
+  it("should use default bodyweight (70kg) when undefined", () => {
+    expect(clampBodyweight(undefined)).toBe(70);
+  });
+
+  it("should use default bodyweight (70kg) when zero or negative", () => {
+    expect(clampBodyweight(0)).toBe(70);
+    expect(clampBodyweight(-10)).toBe(70);
+  });
+
+  it("should clamp to minimum 50kg", () => {
+    expect(clampBodyweight(30)).toBe(50);
+    expect(clampBodyweight(45)).toBe(50);
+    expect(clampBodyweight(49)).toBe(50);
+  });
+
+  it("should clamp to maximum 120kg", () => {
+    expect(clampBodyweight(150)).toBe(120);
+    expect(clampBodyweight(200)).toBe(120);
+    expect(clampBodyweight(121)).toBe(120);
+  });
+
+  it("should pass through valid bodyweights", () => {
+    expect(clampBodyweight(50)).toBe(50);
+    expect(clampBodyweight(60)).toBe(60);
+    expect(clampBodyweight(70)).toBe(70);
+    expect(clampBodyweight(80)).toBe(80);
+    expect(clampBodyweight(90)).toBe(90);
+    expect(clampBodyweight(120)).toBe(120);
   });
 });
 
@@ -244,7 +311,7 @@ describe("XP Calculation - Complete Session", () => {
       duration_minutes: 45
     };
     const xp = calculateSessionXP(workout);
-    expect(xp).toBeGreaterThanOrEqual(40); // Adjusted for actual calculation
+    expect(xp).toBeGreaterThanOrEqual(20); // Adjusted for bodyweight normalization
     expect(xp).toBeLessThanOrEqual(65);
   });
 
@@ -261,7 +328,7 @@ describe("XP Calculation - Complete Session", () => {
       duration_minutes: 60
     };
     const xp = calculateSessionXP(workout);
-    expect(xp).toBeGreaterThanOrEqual(70);
+    expect(xp).toBeGreaterThanOrEqual(45); // Adjusted for bodyweight normalization
     expect(xp).toBeLessThanOrEqual(100);
   });
 
@@ -280,7 +347,7 @@ describe("XP Calculation - Complete Session", () => {
       duration_minutes: 70
     };
     const xp = calculateSessionXP(workout);
-    expect(xp).toBeGreaterThanOrEqual(100);
+    expect(xp).toBeGreaterThanOrEqual(60); // Adjusted for bodyweight normalization
     expect(xp).toBeLessThanOrEqual(120);
   });
 
@@ -313,7 +380,9 @@ describe("XP Calculation - Complete Session", () => {
     const consistentXP = calculateSessionXP(workout, undefined, { sessions_this_week: 5 });
     
     expect(consistentXP).toBeGreaterThan(inconsistentXP);
-    expect(consistentXP).toBeCloseTo(inconsistentXP * 1.25, 1);
+    // Verify bonus is applied (consistent should be ~1.25x, accounting for rounding)
+    expect(consistentXP / inconsistentXP).toBeGreaterThan(1.2);
+    expect(consistentXP / inconsistentXP).toBeLessThanOrEqual(1.3);
   });
 
   it("should apply edit penalty (0.8x)", () => {
@@ -343,6 +412,89 @@ describe("XP Calculation - Complete Session", () => {
     };
     const xp = calculateSessionXP(workout, { fatigue_level: 0 }, { sessions_this_week: 5 });
     expect(xp).toBe(120);
+  });
+
+  it("should use default bodyweight (70kg) when not provided", () => {
+    const workout: WorkoutData = {
+      sets: [
+        { reps: 10, weight_kg: 100 },
+        { reps: 8, weight_kg: 110 }
+      ],
+      duration_minutes: 45
+    };
+    const xpNoBodyweight = calculateSessionXP(workout);
+    const xpWith70kg = calculateSessionXP(workout, undefined, undefined, { bodyweight_kg: 70 });
+    
+    expect(xpNoBodyweight).toBe(xpWith70kg);
+  });
+
+  it("should normalize XP by bodyweight - lighter lifter gets more XP for same volume", () => {
+    const workout: WorkoutData = {
+      sets: [
+        { reps: 10, weight_kg: 100 },
+        { reps: 10, weight_kg: 100 },
+        { reps: 10, weight_kg: 100 }
+      ],
+      duration_minutes: 45
+    };
+    
+    const lightLifterXP = calculateSessionXP(workout, undefined, undefined, { bodyweight_kg: 60 });
+    const heavyLifterXP = calculateSessionXP(workout, undefined, undefined, { bodyweight_kg: 90 });
+    
+    // Light lifter should earn more XP for same absolute volume
+    expect(lightLifterXP).toBeGreaterThan(heavyLifterXP);
+    // Verify difference exists (after rounding, difference might be small but should be present)
+    expect(lightLifterXP - heavyLifterXP).toBeGreaterThanOrEqual(1);
+  });
+
+  it("should give similar XP for proportional effort - fairness test", () => {
+    const duration = 60;
+    
+    // 60kg lifter with 3000kg volume
+    const lightWorkout: WorkoutData = {
+      sets: [
+        { reps: 10, weight_kg: 100 },
+        { reps: 10, weight_kg: 100 },
+        { reps: 10, weight_kg: 100 }
+      ],
+      duration_minutes: duration
+    };
+    const lightLifterXP = calculateSessionXP(lightWorkout, undefined, undefined, { bodyweight_kg: 60 });
+    
+    // 90kg lifter with 4500kg volume (1.5x more for 1.5x bodyweight)
+    const heavyWorkout: WorkoutData = {
+      sets: [
+        { reps: 10, weight_kg: 150 },
+        { reps: 10, weight_kg: 150 },
+        { reps: 10, weight_kg: 150 }
+      ],
+      duration_minutes: duration
+    };
+    const heavyLifterXP = calculateSessionXP(heavyWorkout, undefined, undefined, { bodyweight_kg: 90 });
+    
+    // Should be similar (within 20% due to rounding, XP bounds, and other components)
+    const difference = Math.abs(lightLifterXP - heavyLifterXP);
+    expect(difference).toBeLessThanOrEqual(Math.max(lightLifterXP, heavyLifterXP) * 0.20);
+  });
+
+  it("should clamp extreme bodyweights to prevent exploitation", () => {
+    const workout: WorkoutData = {
+      sets: [
+        { reps: 10, weight_kg: 100 },
+        { reps: 10, weight_kg: 100 }
+      ],
+      duration_minutes: 45
+    };
+    
+    // Very low bodyweight should be clamped to 50kg
+    const lowBWXP = calculateSessionXP(workout, undefined, undefined, { bodyweight_kg: 30 });
+    const minBWXP = calculateSessionXP(workout, undefined, undefined, { bodyweight_kg: 50 });
+    expect(lowBWXP).toBe(minBWXP);
+    
+    // Very high bodyweight should be clamped to 120kg
+    const highBWXP = calculateSessionXP(workout, undefined, undefined, { bodyweight_kg: 200 });
+    const maxBWXP = calculateSessionXP(workout, undefined, undefined, { bodyweight_kg: 120 });
+    expect(highBWXP).toBe(maxBWXP);
   });
 });
 

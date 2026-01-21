@@ -17,6 +17,7 @@ export type Database = {
       profiles: {
         Row: {
           bio: string | null
+          bodyweight_kg: number | null
           created_at: string
           display_name: string | null
           fatigue_level: number | null
@@ -30,6 +31,7 @@ export type Database = {
         }
         Insert: {
           bio?: string | null
+          bodyweight_kg?: number | null
           created_at?: string
           display_name?: string | null
           fatigue_level?: number | null
@@ -43,6 +45,7 @@ export type Database = {
         }
         Update: {
           bio?: string | null
+          bodyweight_kg?: number | null
           created_at?: string
           display_name?: string | null
           fatigue_level?: number | null

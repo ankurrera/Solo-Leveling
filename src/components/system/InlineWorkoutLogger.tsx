@@ -527,6 +527,9 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                   },
                   {
                     sessions_this_week: sessionsThisWeek
+                  },
+                  {
+                    bodyweight_kg: profile?.bodyweight_kg
                   }
                 );
 

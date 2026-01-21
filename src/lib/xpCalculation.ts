@@ -6,7 +6,7 @@
  * 
  * Core principles:
  * - XP represents training stress + adaptation
- * - XP scales with objective effort
+ * - XP scales with relative effort (bodyweight-normalized)
  * - No flat XP, no cosmetic rewards
  */
 
@@ -27,6 +27,28 @@ export interface FatigueData {
 
 export interface ConsistencyData {
   sessions_this_week: number;
+}
+
+export interface BodyweightData {
+  bodyweight_kg?: number | null;
+}
+
+// Constants for bodyweight normalization
+const DEFAULT_BODYWEIGHT_KG = 70;
+const MIN_BODYWEIGHT_KG = 50;
+const MAX_BODYWEIGHT_KG = 120;
+
+/**
+ * Clamp bodyweight to prevent exploitation
+ * Uses effective range of 50-120 kg to avoid:
+ * - Fake low bodyweight entries
+ * - Extreme edge cases
+ */
+export function clampBodyweight(bodyweight: number | null | undefined): number {
+  if (bodyweight === null || bodyweight === undefined || bodyweight <= 0) {
+    return DEFAULT_BODYWEIGHT_KG;
+  }
+  return Math.max(MIN_BODYWEIGHT_KG, Math.min(MAX_BODYWEIGHT_KG, bodyweight));
 }
 
 /**
@@ -78,9 +100,13 @@ export function calculateWorkDensity(totalVolume: number, durationMinutes: numbe
 
 /**
  * STEP 4 - Calculate Base XP from Effort
- * base_xp = (sqrt(total_volume) × 0.5 + work_density × 0.4 + session_duration_minutes × 0.3) × intensity_factor
+ * base_xp = (sqrt(relative_volume) × 1.5 + work_density × 0.4 + session_duration_minutes × 0.3) × intensity_factor
+ * 
+ * relative_volume = total_volume / bodyweight_kg
  * 
  * Properties:
+ * - XP represents relative effort, not absolute load
+ * - Bodyweight normalizes volume to make progression fair across body sizes
  * - Heavy + dense workouts score higher
  * - Long but lazy sessions score lower
  * - No single variable dominates
@@ -89,9 +115,13 @@ export function calculateBaseXP(
   totalVolume: number,
   workDensity: number,
   durationMinutes: number,
-  intensityFactor: number
+  intensityFactor: number,
+  bodyweightKg: number
 ): number {
-  const volumeComponent = Math.sqrt(totalVolume) * 0.5;
+  // Calculate relative volume (bodyweight-normalized)
+  const relativeVolume = totalVolume / bodyweightKg;
+  
+  const volumeComponent = Math.sqrt(relativeVolume) * 1.5;
   const densityComponent = workDensity * 0.4;
   const durationComponent = durationMinutes * 0.3;
   
@@ -132,11 +162,17 @@ export function applyXPBounds(xp: number): number {
 /**
  * Main XP Calculation Function
  * Combines all steps to calculate final XP for a workout session
+ * 
+ * Bodyweight normalization ensures:
+ * - A 60kg lifter lifting 3,000kg
+ * - A 90kg lifter lifting 4,500kg
+ * Can earn similar XP if relative effort is comparable
  */
 export function calculateSessionXP(
   workoutData: WorkoutData,
   fatigueData: FatigueData = { fatigue_level: 0 },
-  consistencyData: ConsistencyData = { sessions_this_week: 0 }
+  consistencyData: ConsistencyData = { sessions_this_week: 0 },
+  bodyweightData: BodyweightData = {}
 ): number {
   // Validate completion requirements
   if (workoutData.duration_minutes < 20) {
@@ -148,14 +184,17 @@ export function calculateSessionXP(
     return 0; // Session must have volume
   }
   
+  // Apply bodyweight normalization with clamping
+  const effectiveBodyweight = clampBodyweight(bodyweightData.bodyweight_kg);
+  
   // STEP 1 & 2: Calculate volume and intensity
   const intensityFactor = calculateAverageIntensity(workoutData.sets);
   
   // STEP 3: Calculate work density
   const workDensity = calculateWorkDensity(totalVolume, workoutData.duration_minutes);
   
-  // STEP 4: Calculate base XP
-  let xp = calculateBaseXP(totalVolume, workDensity, workoutData.duration_minutes, intensityFactor);
+  // STEP 4: Calculate base XP with bodyweight normalization
+  let xp = calculateBaseXP(totalVolume, workDensity, workoutData.duration_minutes, intensityFactor, effectiveBodyweight);
   
   // STEP 5: Apply fatigue modifier
   const fatigueModifier = getFatigueModifier(fatigueData.fatigue_level);
