@@ -11,6 +11,9 @@ export interface WorkoutSession {
   duration_minutes: number | null;
   notes: string | null;
   total_xp_earned: number | null;
+  is_completed: boolean | null;
+  is_edited: boolean | null;
+  completion_time: string | null;
   created_at: string;
   updated_at: string;
 }

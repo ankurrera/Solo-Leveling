@@ -19,6 +19,7 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          fatigue_level: number | null
           id: string
           level: number | null
           player_class: string | null
@@ -31,6 +32,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          fatigue_level?: number | null
           id?: string
           level?: number | null
           player_class?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          fatigue_level?: number | null
           id?: string
           level?: number | null
           player_class?: string | null
@@ -133,34 +136,43 @@ export type Database = {
       }
       workout_sessions: {
         Row: {
-          id: string
-          user_id: string
-          session_date: string
-          duration_minutes: number | null
-          notes: string | null
-          total_xp_earned: number | null
+          completion_time: string | null
           created_at: string
+          duration_minutes: number | null
+          id: string
+          is_completed: boolean | null
+          is_edited: boolean | null
+          notes: string | null
+          session_date: string
+          total_xp_earned: number | null
           updated_at: string
+          user_id: string
         }
         Insert: {
-          id?: string
-          user_id: string
-          session_date?: string
-          duration_minutes?: number | null
-          notes?: string | null
-          total_xp_earned?: number | null
+          completion_time?: string | null
           created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          is_completed?: boolean | null
+          is_edited?: boolean | null
+          notes?: string | null
+          session_date?: string
+          total_xp_earned?: number | null
           updated_at?: string
+          user_id: string
         }
         Update: {
-          id?: string
-          user_id?: string
-          session_date?: string
-          duration_minutes?: number | null
-          notes?: string | null
-          total_xp_earned?: number | null
+          completion_time?: string | null
           created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          is_completed?: boolean | null
+          is_edited?: boolean | null
+          notes?: string | null
+          session_date?: string
+          total_xp_earned?: number | null
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
