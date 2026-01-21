@@ -17,7 +17,6 @@ import type { Exercise } from "@/hooks/useExercises";
 import type { RoutineWithExercises } from "@/hooks/useRoutines";
 
 // Configuration constants
-const MIN_WORKOUT_DURATION_MINUTES = 20;
 const AUTOSAVE_DEBOUNCE_MS = 2000;
 
 interface ExerciseSetData {
@@ -95,7 +94,7 @@ const ActiveWorkoutSession = () => {
             duration_minutes: null,
             notes: null,
             routine_id: routineId,
-            start_time: startTime.toISOString(),
+            start_time: null, // Will be set by database default to server time
           },
           {
             onSuccess: (session) => {
@@ -266,12 +265,6 @@ const ActiveWorkoutSession = () => {
 
     const durationMinutes = Math.floor(elapsedSeconds / 60);
 
-    // Validation
-    if (durationMinutes < MIN_WORKOUT_DURATION_MINUTES) {
-      toast.error(`Workout must be at least ${MIN_WORKOUT_DURATION_MINUTES} minutes long`);
-      return;
-    }
-
     // Convert exerciseSets to the format expected by XP calculation
     const allSets = Object.values(exerciseSets)
       .flat()
@@ -285,6 +278,7 @@ const ActiveWorkoutSession = () => {
         reps: parseInt(set.reps),
       }));
 
+    // Validation: must have at least one set
     if (allSets.length === 0) {
       toast.error("You must log at least one set");
       return;
@@ -318,11 +312,11 @@ const ActiveWorkoutSession = () => {
       );
 
       // Update session with completion data
+      // Client provides any end_time value; database trigger replaces it with server time
       updateSession(
         {
           id: sessionId,
-          end_time: new Date().toISOString(),
-          duration_minutes: durationMinutes,
+          end_time: new Date().toISOString(), // Will be replaced by DB trigger with server now()
           is_completed: true,
           completion_time: new Date().toISOString(),
           total_xp_earned: earnedXP,

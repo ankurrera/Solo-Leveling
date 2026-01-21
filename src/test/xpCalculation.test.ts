@@ -264,15 +264,36 @@ describe("XP Calculation - XP Bounds", () => {
 });
 
 describe("XP Calculation - Complete Session", () => {
-  it("should reject sessions under 20 minutes", () => {
+  it("should reject sessions with zero or negative duration", () => {
     const workout: WorkoutData = {
       sets: [
         { reps: 10, weight_kg: 100 },
         { reps: 8, weight_kg: 110 }
       ],
-      duration_minutes: 15
+      duration_minutes: 0
     };
     expect(calculateSessionXP(workout)).toBe(0);
+    
+    const workout2: WorkoutData = {
+      sets: [
+        { reps: 10, weight_kg: 100 },
+        { reps: 8, weight_kg: 110 }
+      ],
+      duration_minutes: -5
+    };
+    expect(calculateSessionXP(workout2)).toBe(0);
+  });
+
+  it("should accept short sessions with volume", () => {
+    const workout: WorkoutData = {
+      sets: [
+        { reps: 10, weight_kg: 100 },
+        { reps: 8, weight_kg: 110 }
+      ],
+      duration_minutes: 10
+    };
+    // Should return valid XP, not 0
+    expect(calculateSessionXP(workout)).toBeGreaterThan(0);
   });
 
   it("should reject sessions with no volume", () => {

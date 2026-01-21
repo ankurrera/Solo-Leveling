@@ -8,6 +8,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { calculateSessionXP, getSystemMessage } from "@/lib/xpCalculation";
+import { formatElapsedTime } from "@/lib/timeUtils";
 import type { ExerciseSet as XPExerciseSet } from "@/lib/xpCalculation";
 
 interface InlineWorkoutLoggerProps {
@@ -36,8 +37,7 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
   const [isSaving, setIsSaving] = useState(false);
   const [newExerciseName, setNewExerciseName] = useState("");
   const [isAddingExercise, setIsAddingExercise] = useState(false);
-  const [durationMinutes, setDurationMinutes] = useState<number>(0);
-  const [sessionStartTime] = useState<Date>(new Date());
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const sessionCreationInitiated = useRef(false);
 
   // Load existing session if editing
@@ -67,9 +67,10 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
       sessionCreationInitiated.current = true;
       createSession(
         {
-          session_date: new Date().toISOString(),
+          session_date: new Date().toISOString(), // Client date for UI display
           duration_minutes: null,
-          notes: null
+          notes: null,
+          start_time: null // Will be set by database default (now())
         },
         {
           onSuccess: async (session) => {
@@ -88,6 +89,25 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
     // unnecessary re-runs and potential infinite loops.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, currentSession, user]);
+
+  // Timer effect - calculate elapsed time from session start_time
+  useEffect(() => {
+    if (!currentSession?.start_time) return;
+
+    const startTime = new Date(currentSession.start_time).getTime();
+    
+    const updateElapsed = () => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      setElapsedSeconds(elapsed);
+    };
+
+    // Update immediately
+    updateElapsed();
+
+    // Then update every second
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [currentSession?.start_time]);
 
   const handleAddExercise = useCallback(async () => {
     if (!newExerciseName.trim() || !currentSession) {
@@ -451,25 +471,17 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
           </Button>
         )}
 
-        {/* Duration Tracker */}
+        {/* Live Elapsed Time Display */}
         <div className="border rounded-lg p-4 bg-muted/30">
           <div className="flex items-center gap-3">
             <Clock className="w-5 h-5 text-muted-foreground" />
             <div className="flex-1">
-              <label className="text-sm font-medium">Session Duration (minutes)</label>
-              <Input
-                type="number"
-                value={durationMinutes || ''}
-                onChange={(e) => {
-                  const value = parseInt(e.target.value) || 0;
-                  setDurationMinutes(Math.max(0, value));
-                }}
-                min="0"
-                className="mt-1"
-                placeholder="Enter duration"
-              />
+              <label className="text-sm font-medium">Workout in Progress</label>
+              <div className="text-2xl font-bold text-primary mt-1">
+                {formatElapsedTime(elapsedSeconds)}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Minimum 20 minutes required to complete
+                Live elapsed time from start
               </p>
             </div>
           </div>
@@ -480,11 +492,8 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
           <div className="pt-4 border-t">
             <Button
               onClick={async () => {
-                // Validation checks
-                if (durationMinutes < 20) {
-                  toast.error('Session must be at least 20 minutes to complete');
-                  return;
-                }
+                // Calculate duration from elapsed time
+                const durationMinutes = Math.floor(elapsedSeconds / 60);
 
                 // Collect all sets from all exercises
                 const allSets: XPExerciseSet[] = currentSession.exercises.flatMap(ex => 
@@ -499,8 +508,9 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                   return sum + ((set.weight_kg || 0) * set.reps);
                 }, 0);
 
-                if (totalVolume <= 0) {
-                  toast.error('Session must have volume (weight × reps) to complete');
+                // Validation: must have at least one set with volume
+                if (allSets.length === 0 || totalVolume <= 0) {
+                  toast.error('Session must have at least one set with weight and reps to complete');
                   return;
                 }
 
@@ -515,7 +525,7 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                   return sessionDate >= startOfWeek && s.is_completed;
                 }).length;
 
-                // Calculate XP
+                // Calculate XP - duration will be from real elapsed time
                 const xp = calculateSessionXP(
                   {
                     sets: allSets,
@@ -534,10 +544,11 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
                 );
 
                 // Update session with completion and XP
+                // Client provides any end_time value; database trigger replaces it with server time
                 updateSession(
                   {
                     id: currentSession.id,
-                    duration_minutes: durationMinutes,
+                    end_time: new Date().toISOString(), // Will be replaced by DB trigger with server now()
                     total_xp_earned: xp,
                     is_completed: true,
                     completion_time: new Date().toISOString()
@@ -561,6 +572,9 @@ const InlineWorkoutLogger = ({ sessionId, onComplete }: InlineWorkoutLoggerProps
             >
               Complete Workout
             </Button>
+            <p className="text-center text-sm text-muted-foreground mt-2">
+              Duration: {Math.floor(elapsedSeconds / 60)} minutes
+            </p>
           </div>
         )}
       </CardContent>
