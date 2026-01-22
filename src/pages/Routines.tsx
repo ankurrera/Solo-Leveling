@@ -59,10 +59,10 @@ const Routines = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2 text-primary tracking-wider uppercase">
-            Quest Preparations
+            Awakening
           </h1>
           <p className="text-muted-foreground">
-            Plan your training routines before battle
+            Unlock your true power through structured training
           </p>
         </div>
 
