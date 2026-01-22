@@ -35,7 +35,7 @@ const AwakeningButton = () => {
         {/* Left Side Panel */}
         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-16 h-24 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-black via-slate-950 to-transparent border-l border-t border-b border-slate-700/30" />
-          <div className="absolute inset-0 bg-gradient-radial from-cyan-500/10 via-transparent to-transparent opacity-50" />
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-transparent opacity-50" />
           {/* Decorative Lines */}
           <div className="absolute top-2 left-2 w-8 h-px bg-gradient-to-r from-cyan-400/60 to-transparent" />
           <div className="absolute bottom-2 left-2 w-8 h-px bg-gradient-to-r from-cyan-400/60 to-transparent" />
@@ -44,7 +44,7 @@ const AwakeningButton = () => {
         {/* Right Side Panel */}
         <div className="absolute right-0 top-1/2 -translate-y-1/2 w-16 h-24 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-l from-black via-slate-950 to-transparent border-r border-t border-b border-slate-700/30" />
-          <div className="absolute inset-0 bg-gradient-radial from-blue-500/10 via-transparent to-transparent opacity-50" />
+          <div className="absolute inset-0 bg-gradient-to-bl from-blue-500/10 via-transparent to-transparent opacity-50" />
           {/* Japanese-style vertical text (decorative) */}
           <div className="absolute top-1/2 right-3 -translate-y-1/2 flex flex-col items-center gap-1 text-[8px] text-slate-500 font-light tracking-widest">
             <span className="rotate-0">覚</span>
