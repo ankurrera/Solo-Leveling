@@ -108,7 +108,7 @@ export const useHabits = () => {
       // Check if completion exists
       const { data: existing } = await supabase
         .from('habit_completions')
-        .select('*')
+        .select('id')
         .eq('habit_id', habitId)
         .eq('user_id', user.id)
         .eq('completion_date', date)

@@ -40,12 +40,13 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
     // Start from 34 days ago (to make 35 days total including today)
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - 34);
+    const baseTime = startDate.getTime();
 
     for (let week = 0; week < 5; week++) {
       const weekDates: Date[] = [];
       for (let day = 0; day < 7; day++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + (week * 7) + day);
+        const dayOffset = (week * 7) + day;
+        const date = new Date(baseTime + dayOffset * 24 * 60 * 60 * 1000);
         weekDates.push(date);
       }
       grid.push(weekDates);
@@ -56,21 +57,27 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
 
   const calendarGrid = generateCalendarGrid();
 
+  // Calculate start date for queries (helper function)
+  const getStartDate = () => {
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 34);
+    return startDate.toISOString().split('T')[0];
+  };
+
   // Load completions from database
   useEffect(() => {
     const loadCompletions = async () => {
       if (!user) return;
 
-      const today = new Date();
-      const startDate = new Date(today);
-      startDate.setDate(today.getDate() - 34);
+      const startDateStr = getStartDate();
 
       const { data, error } = await supabase
         .from('habit_completions')
         .select('completion_date')
         .eq('habit_id', habit.id)
         .eq('user_id', user.id)
-        .gte('completion_date', startDate.toISOString().split('T')[0]);
+        .gte('completion_date', startDateStr);
 
       if (error) {
         console.error('Failed to load completions:', error);

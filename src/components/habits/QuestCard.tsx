@@ -27,19 +27,18 @@ const QuestCard = ({ habit }: QuestCardProps) => {
       setDaysRemaining(Math.max(0, diffDays));
 
       // Load completion count
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('habit_completions')
         .select('id', { count: 'exact' })
         .eq('habit_id', habit.id)
-        .eq('user_id', user.id)
-        .eq('completed', true);
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Failed to load quest data:', error);
         return;
       }
 
-      setCompletionCount(data?.length || 0);
+      setCompletionCount(count || 0);
     };
 
     loadQuestData();
