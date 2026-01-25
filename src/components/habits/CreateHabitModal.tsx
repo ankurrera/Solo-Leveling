@@ -28,7 +28,13 @@ const CreateHabitModal = ({ open, onOpenChange }: CreateHabitModalProps) => {
   const iconOptions = ["📚", "🌿", "💡", "💪", "🎯", "⚡", "🔥", "⭐"];
 
   const handleCreate = () => {
-    // Handle habit creation logic here
+    // TODO: Implement habit creation with backend integration
+    // For now, this is a placeholder that demonstrates the modal functionality
+    // Future implementation should:
+    // 1. Validate all fields
+    // 2. Create habit in database/state
+    // 3. Update UI with new habit
+    // 4. Show success notification
     console.log({
       habitName,
       habitIcon,

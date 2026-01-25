@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Book, Leaf, Lightbulb, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const WEEKS_TO_DISPLAY = 5;
+const DAYS_PER_WEEK = 7;
+
 interface HabitData {
   id: string;
   name: string;
@@ -21,28 +24,28 @@ const HabitHeatmapSection = ({ onCreateNew }: HabitHeatmapSectionProps) => {
       name: "Read 1 Page",
       icon: <Book className="w-4 h-4" />,
       color: "rgb(168, 85, 247)", // purple
-      completions: Array(5).fill(null).map(() => Array(7).fill(false)),
+      completions: Array(WEEKS_TO_DISPLAY).fill(null).map(() => Array(DAYS_PER_WEEK).fill(false)),
     },
     {
       id: "2",
       name: "Touch Grass",
       icon: <Leaf className="w-4 h-4" />,
       color: "rgb(34, 197, 94)", // green
-      completions: Array(5).fill(null).map(() => Array(7).fill(false)),
+      completions: Array(WEEKS_TO_DISPLAY).fill(null).map(() => Array(DAYS_PER_WEEK).fill(false)),
     },
     {
       id: "3",
       name: "Productivity Learning",
       icon: <Lightbulb className="w-4 h-4" />,
       color: "rgb(234, 179, 8)", // gold
-      completions: Array(5).fill(null).map(() => Array(7).fill(false)),
+      completions: Array(WEEKS_TO_DISPLAY).fill(null).map(() => Array(DAYS_PER_WEEK).fill(false)),
     },
     {
       id: "4",
       name: "Workout",
       icon: <Dumbbell className="w-4 h-4" />,
       color: "rgb(249, 115, 22)", // orange
-      completions: Array(5).fill(null).map(() => Array(7).fill(false)),
+      completions: Array(WEEKS_TO_DISPLAY).fill(null).map(() => Array(DAYS_PER_WEEK).fill(false)),
     },
   ]);
 
