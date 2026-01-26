@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Calendar Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0b;
+            color: #e0e0e0;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #f0f0f0;
+            font-size: 28px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        .habit-card {
+            background: #0d0d0f;
+            border: 1px solid #1a1a1f;
+            border-radius: 8px;
+            padding: 12px;
+            width: fit-content;
+        }
+        
+        .habit-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .habit-icon {
+            font-size: 16px;
+        }
+        
+        .habit-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #d0d0d0;
+        }
+        
+        .calendar-grid {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .day-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding-right: 4px;
+        }
+        
+        .day-label {
+            font-size: 9px;
+            color: #6b6b6b;
+            height: 11px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .heatmap-grid {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .week-column {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .day-tile {
+            width: 11px;
+            height: 11px;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .day-tile.incomplete {
+            background: #1a1a1f;
+            border: 1px solid #2a2a30;
+        }
+        
+        .day-tile.incomplete:hover {
+            background: #222228;
+        }
+        
+        .day-tile.completed {
+            background: #2d4a2a;
+        }
+        
+        .day-tile.completed:hover {
+            background: #365534;
+        }
+        
+        .day-tile.future {
+            background: #161619;
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .day-tile.today {
+            ring: 1px solid #6b6b6b;
+            box-shadow: 0 0 0 1px #6b6b6b;
+        }
+        
+        .done-button {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: transparent;
+            border: none;
+            color: #6b6b6b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .done-button:hover {
+            color: #9b9b9b;
+            background: #1a1a1f;
+        }
+        
+        .done-button.active {
+            color: #4a7a47;
+            background: #1a2619;
+        }
+        
+        .checkmark {
+            width: 12px;
+            height: 12px;
+            display: none;
+        }
+        
+        .done-button.active .checkmark {
+            display: block;
+        }
+        
+        .info {
+            text-align: center;
+            margin-top: 40px;
+            color: #6b6b6b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RPG Habit Calendar - Compact Heatmap Design</h1>
+        
+        <div class="grid">
+            <!-- Habit 1: Touch Grass -->
+            <div class="habit-card">
+                <div class="habit-header">
+                    <span class="habit-icon">🌱</span>
+                    <h3 class="habit-name">Touch grass</h3>
+                </div>
+                <div class="calendar-grid">
+                    <div class="day-labels">
+                        <div class="day-label">Sun</div>
+                        <div class="day-label">Mon</div>
+                        <div class="day-label">Tue</div>
+                        <div class="day-label">Wed</div>
+                        <div class="day-label">Thu</div>
+                        <div class="day-label">Fri</div>
+                        <div class="day-label">Sat</div>
+                    </div>
+                    <div class="heatmap-grid" id="habit1"></div>
+                </div>
+                <button class="done-button" onclick="toggleDone(this, 1)">
+                    <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Done</span>
+                </button>
+            </div>
+            
+            <!-- Habit 2: Morning Run -->
+            <div class="habit-card">
+                <div class="habit-header">
+                    <span class="habit-icon">🏃</span>
+                    <h3 class="habit-name">Morning run</h3>
+                </div>
+                <div class="calendar-grid">
+                    <div class="day-labels">
+                        <div class="day-label">Sun</div>
+                        <div class="day-label">Mon</div>
+                        <div class="day-label">Tue</div>
+                        <div class="day-label">Wed</div>
+                        <div class="day-label">Thu</div>
+                        <div class="day-label">Fri</div>
+                        <div class="day-label">Sat</div>
+                    </div>
+                    <div class="heatmap-grid" id="habit2"></div>
+                </div>
+                <button class="done-button" onclick="toggleDone(this, 2)">
+                    <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Done</span>
+                </button>
+            </div>
+            
+            <!-- Habit 3: Read Daily -->
+            <div class="habit-card">
+                <div class="habit-header">
+                    <span class="habit-icon">📚</span>
+                    <h3 class="habit-name">Read daily</h3>
+                </div>
+                <div class="calendar-grid">
+                    <div class="day-labels">
+                        <div class="day-label">Sun</div>
+                        <div class="day-label">Mon</div>
+                        <div class="day-label">Tue</div>
+                        <div class="day-label">Wed</div>
+                        <div class="day-label">Thu</div>
+                        <div class="day-label">Fri</div>
+                        <div class="day-label">Sat</div>
+                    </div>
+                    <div class="heatmap-grid" id="habit3"></div>
+                </div>
+                <button class="done-button active" onclick="toggleDone(this, 3)">
+                    <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Done</span>
+                </button>
+            </div>
+            
+            <!-- Habit 4: Meditation -->
+            <div class="habit-card">
+                <div class="habit-header">
+                    <span class="habit-icon">🧘</span>
+                    <h3 class="habit-name">Meditation</h3>
+                </div>
+                <div class="calendar-grid">
+                    <div class="day-labels">
+                        <div class="day-label">Sun</div>
+                        <div class="day-label">Mon</div>
+                        <div class="day-label">Tue</div>
+                        <div class="day-label">Wed</div>
+                        <div class="day-label">Thu</div>
+                        <div class="day-label">Fri</div>
+                        <div class="day-label">Sat</div>
+                    </div>
+                    <div class="heatmap-grid" id="habit4"></div>
+                </div>
+                <button class="done-button" onclick="toggleDone(this, 4)">
+                    <svg class="checkmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Done</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="info">
+            <p>Compact quarterly habit heatmap inspired by GitHub contribution graphs</p>
+            <p style="margin-top: 8px; font-size: 12px;">✨ Dense • Functional • Minimal • Serious ✨</p>
+        </div>
+    </div>
+    
+    <script>
+        function generateCalendarGrid(habitId) {
+            const container = document.getElementById(`habit${habitId}`);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const startDate = new Date(today);
+            startDate.setDate(today.getDate() - 90);
+            const dayOfWeek = startDate.getDay();
+            startDate.setDate(startDate.getDate() - dayOfWeek);
+            
+            const numWeeks = 13;
+            
+            // Generate random completion pattern for demo
+            const completionPattern = [];
+            for (let i = 0; i < 91; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                if (date <= today && Math.random() > 0.3) {
+                    completionPattern.push(i);
+                }
+            }
+            
+            for (let week = 0; week < numWeeks; week++) {
+                const weekColumn = document.createElement('div');
+                weekColumn.className = 'week-column';
+                
+                for (let day = 0; day < 7; day++) {
+                    const dayOffset = (week * 7) + day;
+                    const date = new Date(startDate);
+                    date.setDate(startDate.getDate() + dayOffset);
+                    
+                    const dayTile = document.createElement('div');
+                    dayTile.className = 'day-tile';
+                    dayTile.title = date.toDateString();
+                    
+                    const isFuture = date > today;
+                    const isToday = date.getTime() === today.getTime();
+                    const isCompleted = completionPattern.includes(dayOffset);
+                    
+                    if (isFuture) {
+                        dayTile.classList.add('future');
+                    } else if (isCompleted) {
+                        dayTile.classList.add('completed');
+                    } else {
+                        dayTile.classList.add('incomplete');
+                    }
+                    
+                    if (isToday && !isCompleted) {
+                        dayTile.classList.add('today');
+                    }
+                    
+                    if (!isFuture) {
+                        dayTile.onclick = function() {
+                            if (this.classList.contains('completed')) {
+                                this.classList.remove('completed');
+                                this.classList.add('incomplete');
+                            } else {
+                                this.classList.remove('incomplete');
+                                this.classList.add('completed');
+                            }
+                        };
+                    }
+                    
+                    weekColumn.appendChild(dayTile);
+                }
+                
+                container.appendChild(weekColumn);
+            }
+        }
+        
+        function toggleDone(button, habitId) {
+            button.classList.toggle('active');
+        }
+        
+        // Generate all habit calendars
+        for (let i = 1; i <= 4; i++) {
+            generateCalendarGrid(i);
+        }
+    </script>
+</body>
+</html>

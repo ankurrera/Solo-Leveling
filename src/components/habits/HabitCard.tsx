@@ -12,37 +12,27 @@ interface HabitCardProps {
 const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
   const { user } = useAuth();
   const [completions, setCompletions] = useState<Set<string>>(new Set());
+  const [todayCompleted, setTodayCompleted] = useState(false);
 
-  const weekDays = ["S", "M", "T", "W", "T", "F", "S"];
+  const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Color mapping
-  const colorMap = {
-    purple: "bg-purple-500/20 border-purple-500/30 hover:bg-purple-500/30",
-    green: "bg-green-500/20 border-green-500/30 hover:bg-green-500/30",
-    gold: "bg-yellow-500/20 border-yellow-500/30 hover:bg-yellow-500/30",
-    orange: "bg-orange-500/20 border-orange-500/30 hover:bg-orange-500/30",
-    brown: "bg-amber-700/20 border-amber-700/30 hover:bg-amber-700/30",
-  };
-
-  const glowColorMap = {
-    purple: "shadow-purple-500/50",
-    green: "shadow-green-500/50",
-    gold: "shadow-yellow-500/50",
-    orange: "shadow-orange-500/50",
-    brown: "shadow-amber-700/50",
-  };
-
-  // Generate 7x5 grid for the current month (35 days)
+  // Generate quarterly heatmap grid (13 weeks x 7 days = ~3 months)
   const generateCalendarGrid = () => {
     const today = new Date();
     const grid: Date[][] = [];
     
-    // Start from 34 days ago (to make 35 days total including today)
+    // Start from 90 days ago (approximately 3 months / 1 quarter)
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 34);
+    startDate.setDate(today.getDate() - 90);
+    
+    // Find the Sunday before or equal to start date
+    const dayOfWeek = startDate.getDay();
+    startDate.setDate(startDate.getDate() - dayOfWeek);
+    
     const baseTime = startDate.getTime();
+    const numWeeks = 13; // ~3 months in weeks
 
-    for (let week = 0; week < 5; week++) {
+    for (let week = 0; week < numWeeks; week++) {
       const weekDates: Date[] = [];
       for (let day = 0; day < 7; day++) {
         const dayOffset = (week * 7) + day;
@@ -61,7 +51,10 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
   const getStartDate = () => {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 34);
+    startDate.setDate(today.getDate() - 90);
+    // Find the Sunday before or equal to start date
+    const dayOfWeek = startDate.getDay();
+    startDate.setDate(startDate.getDate() - dayOfWeek);
     return startDate.toISOString().split('T')[0];
   };
 
@@ -71,6 +64,7 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
       if (!user) return;
 
       const startDateStr = getStartDate();
+      const todayStr = new Date().toISOString().split('T')[0];
 
       const { data, error } = await supabase
         .from('habit_completions')
@@ -87,6 +81,7 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
       if (data) {
         const completionDates = new Set(data.map(c => c.completion_date));
         setCompletions(completionDates);
+        setTodayCompleted(completionDates.has(todayStr));
       }
     };
 
@@ -95,6 +90,8 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
 
   const handleToggle = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    
     onToggleCompletion(habit.id, dateStr);
     
     // Optimistic update
@@ -107,6 +104,17 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
       }
       return next;
     });
+
+    // Update today's completion status
+    if (dateStr === todayStr) {
+      setTodayCompleted(!completions.has(dateStr));
+    }
+  };
+
+  const handleTodayToggle = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    handleToggle(today);
   };
 
   const isCompleted = (date: Date) => {
@@ -120,68 +128,86 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
     return date > today;
   };
 
+  const isToday = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    return checkDate.getTime() === today.getTime();
+  };
+
   return (
-    <div className="system-panel p-4 hover-glow">
-      {/* Header */}
+    <div className="bg-[#0d0d0f] rounded border border-[#1a1a1f] p-3 w-fit">
+      {/* Header - Emoji + Title Case */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xl">{habit.icon}</span>
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider">
+        <span className="text-base">{habit.icon}</span>
+        <h3 className="text-xs font-medium text-gray-300">
           {habit.name}
         </h3>
       </div>
 
-      {/* Calendar Grid with Day Labels on Right */}
-      <div className="flex gap-2">
-        {/* 7x5 Grid */}
-        <div className="flex-1 space-y-1">
+      {/* Calendar Grid - Day Labels on LEFT + Tight Grid */}
+      <div className="flex gap-1.5">
+        {/* Day Labels - Left side */}
+        <div className="flex flex-col justify-between pr-1">
+          {weekDays.map((day, index) => (
+            <div key={index} className="text-[9px] text-gray-500 h-[11px] flex items-center">
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Heatmap Grid - Weeks as columns, Days as rows */}
+        <div className="flex gap-[2px]">
           {calendarGrid.map((week, weekIndex) => (
-            <div key={weekIndex} className="flex gap-1">
+            <div key={weekIndex} className="flex flex-col gap-[2px]">
               {week.map((date, dayIndex) => {
                 const completed = isCompleted(date);
                 const future = isFutureDate(date);
+                const today = isToday(date);
                 
                 return (
                   <button
                     key={dayIndex}
                     onClick={() => !future && handleToggle(date)}
                     disabled={future}
+                    title={date.toDateString()}
                     className={`
-                      w-6 h-6 rounded-sm border flex items-center justify-center
-                      transition-all
-                      ${future ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
-                      ${completed 
-                        ? `${colorMap[habit.color]} ${glowColorMap[habit.color]} shadow-sm` 
-                        : 'border-border/30 hover:border-border/50'
+                      w-[11px] h-[11px] rounded-sm
+                      transition-colors
+                      ${future 
+                        ? 'bg-[#161619] opacity-40 cursor-not-allowed' 
+                        : completed
+                          ? 'bg-[#2d4a2a] hover:bg-[#365534] cursor-pointer'
+                          : 'bg-[#1a1a1f] hover:bg-[#222228] cursor-pointer border border-[#2a2a30]'
                       }
+                      ${today && !completed ? 'ring-1 ring-gray-600 ring-offset-1 ring-offset-[#0d0d0f]' : ''}
                     `}
-                  >
-                    {completed && (
-                      <div className="w-2 h-2 rounded-full bg-current" />
-                    )}
-                  </button>
+                  />
                 );
               })}
             </div>
           ))}
         </div>
-
-        {/* Day Labels */}
-        <div className="flex flex-col justify-between py-0.5">
-          {weekDays.map((day, index) => (
-            <div key={index} className="text-[10px] text-muted-foreground h-6 flex items-center">
-              {day}
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-3 flex items-center gap-2 text-xs">
-        <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/30 flex items-center justify-center">
-          <Check className="w-2 h-2 text-green-500" />
-        </div>
-        <span className="text-muted-foreground">Done</span>
-      </div>
+      {/* Done Button - Small and Left-aligned */}
+      <button
+        onClick={handleTodayToggle}
+        className={`
+          mt-3 flex items-center gap-1.5 text-[10px] px-2 py-1 rounded
+          transition-colors
+          ${todayCompleted 
+            ? 'text-[#4a7a47] bg-[#1a2619]' 
+            : 'text-gray-500 hover:text-gray-400 hover:bg-[#1a1a1f]'
+          }
+        `}
+      >
+        {todayCompleted && (
+          <Check className="w-3 h-3" />
+        )}
+        <span>Done</span>
+      </button>
     </div>
   );
 };
