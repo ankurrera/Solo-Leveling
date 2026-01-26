@@ -15,24 +15,29 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
   const [todayCompleted, setTodayCompleted] = useState(false);
 
   const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  
+  // Constants for quarterly view
+  const QUARTERLY_DAYS = 90;
+  const QUARTERLY_WEEKS = 13;
 
-  // Generate quarterly heatmap grid (13 weeks x 7 days = ~3 months)
-  const generateCalendarGrid = () => {
+  // Helper function to calculate the start date for quarterly view
+  const getQuarterlyStartDate = () => {
     const today = new Date();
-    const grid: Date[][] = [];
-    
-    // Start from 90 days ago (approximately 3 months / 1 quarter)
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 90);
-    
+    startDate.setDate(today.getDate() - QUARTERLY_DAYS);
     // Find the Sunday before or equal to start date
     const dayOfWeek = startDate.getDay();
     startDate.setDate(startDate.getDate() - dayOfWeek);
-    
-    const baseTime = startDate.getTime();
-    const numWeeks = 13; // ~3 months in weeks
+    return startDate;
+  };
 
-    for (let week = 0; week < numWeeks; week++) {
+  // Generate quarterly heatmap grid (13 weeks x 7 days = ~3 months)
+  const generateCalendarGrid = () => {
+    const grid: Date[][] = [];
+    const startDate = getQuarterlyStartDate();
+    const baseTime = startDate.getTime();
+
+    for (let week = 0; week < QUARTERLY_WEEKS; week++) {
       const weekDates: Date[] = [];
       for (let day = 0; day < 7; day++) {
         const dayOffset = (week * 7) + day;
@@ -49,13 +54,7 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
 
   // Calculate start date for queries (helper function)
   const getStartDate = () => {
-    const today = new Date();
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 90);
-    // Find the Sunday before or equal to start date
-    const dayOfWeek = startDate.getDay();
-    startDate.setDate(startDate.getDate() - dayOfWeek);
-    return startDate.toISOString().split('T')[0];
+    return getQuarterlyStartDate().toISOString().split('T')[0];
   };
 
   // Load completions from database
@@ -91,6 +90,7 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
   const handleToggle = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     const todayStr = new Date().toISOString().split('T')[0];
+    const wasCompleted = completions.has(dateStr);
     
     onToggleCompletion(habit.id, dateStr);
     
@@ -105,9 +105,9 @@ const HabitCard = ({ habit, onToggleCompletion }: HabitCardProps) => {
       return next;
     });
 
-    // Update today's completion status
+    // Update today's completion status using the new state
     if (dateStr === todayStr) {
-      setTodayCompleted(!completions.has(dateStr));
+      setTodayCompleted(!wasCompleted);
     }
   };
 
