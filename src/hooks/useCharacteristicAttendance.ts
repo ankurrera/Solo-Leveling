@@ -143,7 +143,7 @@ export const useCharacteristicAttendance = (characteristicId: string | null) => 
     // Get all attendance records
     const { data: records } = await supabase
       .from('characteristic_attendance')
-      .select('attendance_date, time_spent_minutes')
+      .select('attendance_date, time_spent_minutes, xp_earned')
       .eq('characteristic_id', characteristicId)
       .eq('user_id', user.id)
       .order('attendance_date', { ascending: false });
@@ -161,7 +161,7 @@ export const useCharacteristicAttendance = (characteristicId: string | null) => 
     );
 
     // Calculate total XP from all attendance records
-    const totalXp = records.reduce((sum, r) => sum + (r as unknown as CharacteristicAttendance).xp_earned || 0, 0);
+    const totalXp = records.reduce((sum, r) => sum + (r.xp_earned || 0), 0);
 
     // Update the characteristic with new consistency data and XP
     await supabase

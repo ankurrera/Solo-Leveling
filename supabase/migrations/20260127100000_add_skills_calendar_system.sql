@@ -116,20 +116,20 @@ BEGIN
   -- Broken: Low XP (0.5-0.6)
   -- Neutral: Base XP (1.0)
   
-  CASE consistency_state_value
+  RETURN CASE consistency_state_value
     WHEN 'consistent' THEN
       -- Progressive bonus: starts at 1.0, increases by 0.05 per streak day, caps at 2.0
-      RETURN LEAST(1.0 + (current_streak_count * 0.05), 2.0);
+      LEAST(1.0 + (current_streak_count * 0.05), 2.0)
     WHEN 'partial' THEN
       -- Reduced XP for partial consistency
-      RETURN 0.8;
+      0.8
     WHEN 'broken' THEN
       -- Penalty for broken consistency
-      RETURN 0.5;
+      0.5
     ELSE
       -- Neutral state: base XP
-      RETURN 1.0;
-  END CASE;
+      1.0
+  END;
 END;
 $$;
 

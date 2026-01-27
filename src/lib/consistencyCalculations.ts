@@ -114,7 +114,7 @@ export function analyzeConsistency(
   let partialDays = 0;
   let missedDays = 0;
 
-  // Calculate streaks
+  // Calculate streaks - iterate from most recent to oldest
   for (let i = 0; i < sorted.length; i++) {
     const record = sorted[i];
     const currentDate = new Date(record.date);
@@ -122,9 +122,9 @@ export function analyzeConsistency(
 
     if (goalMet) {
       if (lastDate === null) {
-        // First record
+        // First record (most recent)
         tempStreak = 1;
-        if (i === 0) currentStreak = 1;
+        currentStreak = 1;
       } else {
         const daysDiff = Math.floor(
           (lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -133,11 +133,15 @@ export function analyzeConsistency(
         if (daysDiff === 1) {
           // Consecutive day
           tempStreak++;
-          if (i === tempStreak - 1) currentStreak = tempStreak;
+          currentStreak = tempStreak;
         } else {
-          // Streak broken
+          // Streak broken - gap in days
           bestStreak = Math.max(bestStreak, tempStreak);
           tempStreak = 1;
+          // Current streak only applies to the most recent consecutive days
+          if (currentStreak === 0) {
+            currentStreak = 0;
+          }
         }
       }
       
@@ -150,13 +154,13 @@ export function analyzeConsistency(
         missedDays++;
       }
       
-      // Break current streak
+      // Break streak
       bestStreak = Math.max(bestStreak, tempStreak);
-      tempStreak = 0;
-      if (i < 7) {
-        // Only reset current streak if it's in recent history (last 7 days)
+      if (i === 0) {
+        // Most recent day didn't meet goal, so no current streak
         currentStreak = 0;
       }
+      tempStreak = 0;
     }
 
     lastDate = currentDate;
