@@ -89,25 +89,9 @@ const RadarChart = () => {
   // SINGLE SOURCE OF TRUTH: Skills directly from database
   const { skills, isLoading } = useSkills();
   
-  // Debug: Log every render
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Radar Chart] Component rendering:', {
-      timestamp: new Date().toISOString(),
-      skillCount: skills.length,
-    });
-  }
-  
   // Transform skills to radar data format
   // Each skill = one axis, no aggregation
   // CRITICAL: No useMemo - always derive directly from skills to ensure reactivity
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Radar Chart] Deriving radarData:', {
-      skillCount: skills.length,
-      timestamp: new Date().toISOString(),
-      skillsSnapshot: skills.map(s => ({ name: s.name, xp: s.xp, id: s.id }))
-    });
-  }
-  
   const data = skills.map(skill => ({
     label: skill.name,
     value: skill.xp,
