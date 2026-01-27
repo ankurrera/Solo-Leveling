@@ -18,11 +18,11 @@ const PlayerStatusPanel = () => {
   }
 
   const sessionStats = calculateStats(sessions);
-  const level = profile?.level || 0;
-  const currentXP = profile?.xp || 450;
+  const level = profile?.level || 1;
+  const currentXP = profile?.xp || 0;
   const xpForNextLevel = 1000;
   const displayName = profile?.display_name || "Hero";
-  const coins = 225; // Mock data for coins
+  const coins = 225; // TODO: Connect to actual coins system when implemented
   
   // Use calculated stats from database functions
   const stats = calculatedStats || {
@@ -35,7 +35,7 @@ const PlayerStatusPanel = () => {
   };
 
   // Calculate health percentage and hearts
-  const healthPercent = stats.health;
+  const healthPercent = stats.health || 100;
   const totalHearts = 5;
   const filledHearts = Math.round((healthPercent / 100) * totalHearts);
 
