@@ -1,60 +1,28 @@
-import { useEffect, useRef, useMemo } from "react";
-import { useStats } from "@/hooks/useStats";
+import { useEffect, useRef } from "react";
+import { useCoreMetrics } from "@/hooks/useCoreMetrics";
+import { MAX_METRIC_XP } from "@/lib/coreMetrics";
 
+/**
+ * Physical Balance Radar Chart Component
+ * 
+ * CORE PRINCIPLE (NON-NEGOTIABLE):
+ * - Radar reads ONLY Core Metric XP
+ * - Core Metric XP is COMPUTED from Skills and Characteristics
+ * - No hardcoded radar values
+ * 
+ * HARD OVERRIDE LINE:
+ * "If the radar chart is not driven entirely by computed Core Metric XP derived from Skills, 
+ * the implementation is incorrect."
+ */
 const RadarChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { stats, isLoading } = useStats();
-
-  // 18 metrics for Life OS radar chart - clockwise order as specified
-  const data = useMemo(() => {
-    // Generate sample data based on stats (scale 0-2000)
-    // TODO: Replace with actual metric data when backend is implemented
-    // Currently using existing stats as a baseline to generate varied values
-    const baseMultiplier = stats ? 10 : 5;
-    
-    // Multipliers for variation across metrics
-    const METRIC_MULTIPLIERS = {
-      programming: 1.0,
-      learning: 0.8,
-      erudition: 1.0,
-      discipline: 0.7,
-      productivity: 1.7,
-      foreignLanguage: 0.8,
-      fitness: 1.2,
-      drawing: 0.6,
-      hygiene: 1.5,
-      reading: 0.9,
-      communication: 0.7,
-      cooking: 1.1,
-      meditation: 0.8,
-      swimming: 1.3,
-      running: 1.1,
-      math: 0.9,
-      music: 0.7,
-      cleaning: 1.2
-    };
-    
-    return [
-      { label: "Programming", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.programming },
-      { label: "Learning", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.learning },
-      { label: "Erudition", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.erudition },
-      { label: "Discipline", value: (stats?.consistency || 20) * baseMultiplier * METRIC_MULTIPLIERS.discipline },
-      { label: "Productivity", value: (stats?.recovery || 50) * baseMultiplier * METRIC_MULTIPLIERS.productivity },
-      { label: "Foreign Language", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.foreignLanguage },
-      { label: "Fitness", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.fitness },
-      { label: "Drawing", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.drawing },
-      { label: "Hygiene", value: (stats?.consistency || 20) * baseMultiplier * METRIC_MULTIPLIERS.hygiene },
-      { label: "Reading", value: (stats?.recovery || 50) * baseMultiplier * METRIC_MULTIPLIERS.reading },
-      { label: "Communication", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.communication },
-      { label: "Cooking", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.cooking },
-      { label: "Meditation", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.meditation },
-      { label: "Swimming", value: (stats?.consistency || 20) * baseMultiplier * METRIC_MULTIPLIERS.swimming },
-      { label: "Running", value: (stats?.recovery || 50) * baseMultiplier * METRIC_MULTIPLIERS.running },
-      { label: "Math", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.math },
-      { label: "Music", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.music },
-      { label: "Cleaning", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.cleaning },
-    ];
-  }, [stats]);
+  
+  // Use computed Core Metrics - this is the ONLY data source for the radar
+  const { radarData, isLoading, balanceScore } = useCoreMetrics();
+  
+  // radarData is computed from Skills and Characteristics XP
+  // It automatically updates when skill XP changes, attendance is marked, or time is edited
+  const data = radarData;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -67,7 +35,7 @@ const RadarChart = () => {
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 60; // More padding for labels
     const numAxes = data.length;
-    const maxValue = 2000; // Scale from 0 to 2000
+    const maxValue = MAX_METRIC_XP; // Max per metric: 2000 XP (from coreMetrics constants)
     
     // Ensure data polygon occupies ~55-70% of chart radius
     // This prevents the "small spiky star" look by scaling up the visual impact
