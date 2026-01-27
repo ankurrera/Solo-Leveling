@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Skill, useSkills } from "@/hooks/useSkills";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { getSkillMetricContributions } from "@/lib/coreMetricCalculation";
+import { getDefaultMapping } from "@/lib/coreMetrics";
 
 interface EditSkillDialogProps {
   skill: Skill;
@@ -17,7 +19,14 @@ const EditSkillDialog = ({ skill, open, onOpenChange }: EditSkillDialogProps) =>
   const [description, setDescription] = useState(skill.description || "");
   const [area, setArea] = useState(skill.area || "");
   const [coverImage, setCoverImage] = useState(skill.cover_image || "");
-  const [xp, setXP] = useState(skill.xp.toString());
+
+  // Reset form when skill changes
+  useEffect(() => {
+    setName(skill.name);
+    setDescription(skill.description || "");
+    setArea(skill.area || "");
+    setCoverImage(skill.cover_image || "");
+  }, [skill]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +39,7 @@ const EditSkillDialog = ({ skill, open, onOpenChange }: EditSkillDialogProps) =>
         description: description.trim() || null,
         area: area.trim() || null,
         cover_image: coverImage.trim() || null,
-        xp: parseInt(xp) || 0,
+        // XP is computed from attendance records - not manually editable
       },
       {
         onSuccess: () => {
@@ -39,6 +48,16 @@ const EditSkillDialog = ({ skill, open, onOpenChange }: EditSkillDialogProps) =>
       }
     );
   };
+
+  // Calculate which metrics this skill affects
+  const skillContributionData = {
+    id: skill.id,
+    name: skill.name,
+    xp: skill.xp,
+    area: skill.area,
+    contributesTo: skill.contributes_to || undefined,
+  };
+  const metricContributions = getSkillMetricContributions(skillContributionData);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,35 +112,52 @@ const EditSkillDialog = ({ skill, open, onOpenChange }: EditSkillDialogProps) =>
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Cover Image URL */}
-            <div>
-              <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
-                Cover Image URL
-              </label>
-              <Input
-                value={coverImage}
-                onChange={(e) => setCoverImage(e.target.value)}
-                placeholder="https://..."
-                className="bg-input border-border"
-              />
-            </div>
+          {/* Cover Image URL */}
+          <div>
+            <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+              Cover Image URL
+            </label>
+            <Input
+              value={coverImage}
+              onChange={(e) => setCoverImage(e.target.value)}
+              placeholder="https://..."
+              className="bg-input border-border"
+            />
+          </div>
 
-            {/* XP */}
-            <div>
-              <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
-                XP
-              </label>
-              <Input
-                type="number"
-                value={xp}
-                onChange={(e) => setXP(e.target.value)}
-                placeholder="0"
-                className="bg-input border-border"
-                min="0"
-              />
+          {/* XP Display (Read-only) - Shows computed value */}
+          <div className="border-t border-border/30 pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                Current XP (computed from attendance)
+              </span>
+              <span className="text-lg font-medium text-foreground">
+                {skill.xp} XP
+              </span>
             </div>
           </div>
+
+          {/* Metric Contributions Display - Bi-directional debugging */}
+          {metricContributions.length > 0 && (
+            <div className="border-t border-border/30 pt-4">
+              <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
+                Core Metrics Affected
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {metricContributions.map((contribution) => (
+                  <div 
+                    key={contribution.metricName}
+                    className="flex items-center justify-between p-2 bg-muted/50 rounded text-sm"
+                  >
+                    <span className="text-foreground">{contribution.metricName}</span>
+                    <span className="text-muted-foreground">
+                      +{contribution.contributedXp} XP ({Math.round(contribution.weight * 100)}%)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-3 pt-4">

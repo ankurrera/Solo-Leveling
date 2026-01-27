@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useCoreMetrics } from "@/hooks/useCoreMetrics";
-import { MAX_METRIC_XP } from "@/lib/coreMetrics";
+import { MAX_METRIC_XP, CoreMetricName } from "@/lib/coreMetrics";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /**
  * Physical Balance Radar Chart Component
@@ -13,16 +14,153 @@ import { MAX_METRIC_XP } from "@/lib/coreMetrics";
  * HARD OVERRIDE LINE:
  * "If the radar chart is not driven entirely by computed Core Metric XP derived from Skills, 
  * the implementation is incorrect."
+ * 
+ * BI-DIRECTIONAL DEBUGGING:
+ * - Clicking a radar axis shows list of contributing skills with XP per skill
  */
+
+interface MetricDetailDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  metricName: CoreMetricName | null;
+  metricXp: number;
+  contributions: Array<{
+    skillId: string;
+    skillName: string;
+    skillXp: number;
+    weight: number;
+    contributedXp: number;
+  }>;
+}
+
+const MetricDetailDialog = ({ 
+  open, 
+  onOpenChange, 
+  metricName, 
+  metricXp,
+  contributions 
+}: MetricDetailDialogProps) => {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="system-panel max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-normal text-foreground">
+            {metricName}
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4 mt-4">
+          {/* Total XP */}
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+            <span className="text-muted-foreground">Total XP</span>
+            <span className="text-lg font-medium text-foreground">{metricXp} XP</span>
+          </div>
+          
+          {/* Contributing Skills */}
+          <div>
+            <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
+              Contributing Skills ({contributions.length})
+            </h4>
+            
+            {contributions.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No skills currently contribute to this metric
+              </p>
+            ) : (
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {contributions.map((contribution) => (
+                  <div 
+                    key={contribution.skillId}
+                    className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm"
+                  >
+                    <div>
+                      <span className="text-foreground">{contribution.skillName}</span>
+                      <span className="text-muted-foreground ml-2">
+                        ({contribution.skillXp} XP × {Math.round(contribution.weight * 100)}%)
+                      </span>
+                    </div>
+                    <span className="font-medium text-primary">
+                      +{contribution.contributedXp} XP
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const RadarChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [selectedMetric, setSelectedMetric] = useState<CoreMetricName | null>(null);
   
   // Use computed Core Metrics - this is the ONLY data source for the radar
-  const { radarData, isLoading, balanceScore } = useCoreMetrics();
+  const { radarData, isLoading, coreMetrics, getMetricContributors } = useCoreMetrics();
   
   // radarData is computed from Skills and Characteristics XP
   // It automatically updates when skill XP changes, attendance is marked, or time is edited
   const data = radarData;
+
+  // Handle canvas click to detect which axis was clicked
+  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || data.length === 0) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = Math.min(centerX, centerY) - 60;
+    const numAxes = data.length;
+
+    // Calculate angle from center to click point
+    const dx = x - centerX;
+    const dy = y - centerY;
+    const clickAngle = Math.atan2(dy, dx);
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Only respond to clicks near the chart area
+    if (distance > radius + 50) return;
+
+    // Find the closest axis
+    let closestAxisIndex = 0;
+    let minAngleDiff = Infinity;
+
+    for (let i = 0; i < numAxes; i++) {
+      const axisAngle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+      let angleDiff = Math.abs(clickAngle - axisAngle);
+      
+      // Normalize angle difference to [0, PI]
+      if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+      
+      if (angleDiff < minAngleDiff) {
+        minAngleDiff = angleDiff;
+        closestAxisIndex = i;
+      }
+    }
+
+    // Threshold: only select if click is within ~20 degrees of an axis
+    const angleThreshold = Math.PI / 9; // ~20 degrees
+    if (minAngleDiff < angleThreshold) {
+      setSelectedMetric(data[closestAxisIndex].label as CoreMetricName);
+    }
+  }, [data]);
+
+  // Get contributions for selected metric
+  const selectedMetricContributions = selectedMetric 
+    ? getMetricContributors(selectedMetric) 
+    : [];
+  const selectedMetricData = selectedMetric 
+    ? coreMetrics.find(m => m.name === selectedMetric) 
+    : null;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -159,15 +297,31 @@ const RadarChart = () => {
           <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="relative flex items-center justify-center">
-          <canvas
-            ref={canvasRef}
-            width={500}
-            height={500}
-            className="w-full max-w-[500px]"
-          />
-        </div>
+        <>
+          <div className="relative flex items-center justify-center">
+            <canvas
+              ref={canvasRef}
+              width={500}
+              height={500}
+              className="w-full max-w-[500px] cursor-pointer"
+              onClick={handleCanvasClick}
+              title="Click on a metric axis to see contributing skills"
+            />
+          </div>
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            Click on a metric label to see contributing skills
+          </p>
+        </>
       )}
+      
+      {/* Metric Detail Dialog - bi-directional debugging */}
+      <MetricDetailDialog
+        open={selectedMetric !== null}
+        onOpenChange={(open) => !open && setSelectedMetric(null)}
+        metricName={selectedMetric}
+        metricXp={selectedMetricData?.xp || 0}
+        contributions={selectedMetricContributions}
+      />
     </div>
   );
 };

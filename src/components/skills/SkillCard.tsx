@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Skill, useSkills } from "@/hooks/useSkills";
 import { Button } from "@/components/ui/button";
 import { calculateLevelProgress } from "@/lib/levelCalculation";
-import { Edit2, Trash2, Star, Power, PowerOff, Calendar as CalendarIcon } from "lucide-react";
+import { Edit2, Trash2, Star, Power, PowerOff, Calendar as CalendarIcon, Target } from "lucide-react";
 import { getConsistencyStatusMessage } from "@/lib/consistencyCalculations";
+import { getSkillMetricContributions } from "@/lib/coreMetricCalculation";
 import EditSkillDialog from "./EditSkillDialog";
 import ConfirmDialog from "./ConfirmDialog";
 import SkillCalendar from "./SkillCalendar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 interface SkillCardProps {
   skill: Skill;
@@ -20,6 +22,16 @@ const SkillCard = ({ skill }: SkillCardProps) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const progress = calculateLevelProgress(skill.xp);
+
+  // Calculate which metrics this skill affects (bi-directional debugging)
+  const skillContributionData = {
+    id: skill.id,
+    name: skill.name,
+    xp: skill.xp,
+    area: skill.area,
+    contributesTo: skill.contributes_to || undefined,
+  };
+  const metricContributions = getSkillMetricContributions(skillContributionData);
 
   const handleToggleActive = () => {
     updateSkill.mutate({
@@ -105,6 +117,34 @@ const SkillCard = ({ skill }: SkillCardProps) => {
               <Star className="w-3 h-3 text-primary/70 fill-primary/70" />
             </div>
           </div>
+
+          {/* Metric Contributions - shows which Core Metrics this skill affects */}
+          {metricContributions.length > 0 && (
+            <TooltipProvider>
+              <div className="flex items-center gap-1 text-xs flex-wrap">
+                <Target className="w-3 h-3 text-muted-foreground" />
+                {metricContributions.slice(0, 3).map((contribution) => (
+                  <Tooltip key={contribution.metricName}>
+                    <TooltipTrigger asChild>
+                      <span className="text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded cursor-help">
+                        {contribution.metricName}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">
+                        +{contribution.contributedXp} XP ({Math.round(contribution.weight * 100)}% weight)
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+                {metricContributions.length > 3 && (
+                  <span className="text-muted-foreground">
+                    +{metricContributions.length - 3} more
+                  </span>
+                )}
+              </div>
+            </TooltipProvider>
+          )}
 
           {/* Streak and Consistency */}
           <div className="flex items-center justify-between text-xs border-t border-border/30 pt-2">

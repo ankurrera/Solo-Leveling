@@ -55,19 +55,23 @@ export interface UseCoreMetricsResult {
 
 /**
  * Map skill data to contribution format
+ * Uses the skill's explicit contributes_to mapping if available,
+ * otherwise falls back to default area-based mappings.
  */
 function mapSkillToContributionData(skill: {
   id: string;
   name: string;
   xp: number;
   area: string | null;
+  contributes_to?: Record<string, number> | null;
 }): SkillContributionData {
   return {
     id: skill.id,
     name: skill.name,
     xp: skill.xp,
     area: skill.area,
-    // contributesTo could be extended if skills store their own mappings
+    // Use explicit skill contribution mapping if available
+    contributesTo: skill.contributes_to || undefined,
   };
 }
 
