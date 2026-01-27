@@ -5,24 +5,30 @@ const RadarChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { stats, isLoading } = useStats();
 
-  // Build data array from stats - memoized to prevent unnecessary re-renders
+  // 18 metrics for Life OS radar chart - clockwise order as specified
   const data = useMemo(() => {
-    if (!stats) {
-      return [
-        { label: "STR", value: 30 },
-        { label: "END", value: 25 },
-        { label: "MOB", value: 30 },
-        { label: "REC", value: 50 },
-        { label: "CON", value: 0 },
-      ];
-    }
-    
+    // Generate sample data based on stats (scale 0-2000)
+    // In a real implementation, these would come from actual metrics
+    const baseMultiplier = stats ? 10 : 5;
     return [
-      { label: "STR", value: stats.strength },
-      { label: "END", value: stats.endurance },
-      { label: "MOB", value: stats.mobility },
-      { label: "REC", value: stats.recovery },
-      { label: "CON", value: stats.consistency },
+      { label: "Programming", value: (stats?.strength || 30) * baseMultiplier },
+      { label: "Learning", value: (stats?.endurance || 25) * baseMultiplier },
+      { label: "Erudition", value: (stats?.mobility || 30) * baseMultiplier },
+      { label: "Discipline", value: (stats?.consistency || 20) * baseMultiplier },
+      { label: "Productivity", value: (stats?.recovery || 50) * baseMultiplier },
+      { label: "Foreign Language", value: (stats?.strength || 30) * baseMultiplier * 0.8 },
+      { label: "Fitness", value: (stats?.endurance || 25) * baseMultiplier * 1.2 },
+      { label: "Drawing", value: (stats?.mobility || 30) * baseMultiplier * 0.6 },
+      { label: "Hygiene", value: (stats?.consistency || 20) * baseMultiplier * 1.5 },
+      { label: "Reading", value: (stats?.recovery || 50) * baseMultiplier * 0.9 },
+      { label: "Communication", value: (stats?.strength || 30) * baseMultiplier * 0.7 },
+      { label: "Cooking", value: (stats?.endurance || 25) * baseMultiplier * 1.1 },
+      { label: "Meditation", value: (stats?.mobility || 30) * baseMultiplier * 0.8 },
+      { label: "Swimming", value: (stats?.consistency || 20) * baseMultiplier * 1.3 },
+      { label: "Running", value: (stats?.recovery || 50) * baseMultiplier * 1.1 },
+      { label: "Math", value: (stats?.strength || 30) * baseMultiplier * 0.9 },
+      { label: "Music", value: (stats?.endurance || 25) * baseMultiplier * 0.7 },
+      { label: "Cleaning", value: (stats?.mobility || 30) * baseMultiplier * 1.2 },
     ];
   }, [stats]);
 
@@ -35,19 +41,20 @@ const RadarChart = () => {
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const radius = Math.min(centerX, centerY) - 40;
+    const radius = Math.min(centerX, centerY) - 60; // More padding for labels
     const numAxes = data.length;
+    const maxValue = 2000; // Scale from 0 to 2000
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw web circles
-    const levels = 5;
+    // Draw polygon grid rings (NOT circular)
+    const levels = 10; // For 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000
     for (let i = levels; i >= 1; i--) {
       const levelRadius = (radius / levels) * i;
       ctx.beginPath();
-      ctx.strokeStyle = `rgba(139, 92, 246, ${0.1 + (i / levels) * 0.2})`;
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#E5E5E5"; // Very light gray for grid rings
+      ctx.lineWidth = 0.5;
 
       for (let j = 0; j <= numAxes; j++) {
         const angle = (Math.PI * 2 * j) / numAxes - Math.PI / 2;
@@ -63,7 +70,7 @@ const RadarChart = () => {
       ctx.stroke();
     }
 
-    // Draw axes
+    // Draw axes lines
     for (let i = 0; i < numAxes; i++) {
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
       const x = centerX + Math.cos(angle) * radius;
@@ -72,19 +79,29 @@ const RadarChart = () => {
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(x, y);
-      ctx.strokeStyle = "rgba(139, 92, 246, 0.3)";
-      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#CCCCCC"; // Slightly darker gray for axes
+      ctx.lineWidth = 0.5;
       ctx.stroke();
+    }
 
-      // Draw labels
-      const labelRadius = radius + 20;
+    // Draw center point
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
+    ctx.fillStyle = "#9A9A9A";
+    ctx.fill();
+
+    // Draw labels outside the outer grid
+    for (let i = 0; i < numAxes; i++) {
+      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+      const labelRadius = radius + 30;
       const labelX = centerX + Math.cos(angle) * labelRadius;
       const labelY = centerY + Math.sin(angle) * labelRadius;
-      ctx.font = "11px Rajdhani";
-      ctx.fillStyle = "rgba(139, 92, 246, 0.7)";
+      
+      ctx.font = "300 10px sans-serif"; // Small, thin, sans-serif
+      ctx.fillStyle = "#9A9A9A"; // Muted gray
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(data[i].label.toUpperCase(), labelX, labelY);
+      ctx.fillText(data[i].label, labelX, labelY);
     }
 
     // Draw data polygon
@@ -92,9 +109,9 @@ const RadarChart = () => {
     for (let i = 0; i <= numAxes; i++) {
       const index = i % numAxes;
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-      const value = data[index].value / 100;
-      const x = centerX + Math.cos(angle) * radius * value;
-      const y = centerY + Math.sin(angle) * radius * value;
+      const normalizedValue = data[index].value / maxValue;
+      const x = centerX + Math.cos(angle) * radius * normalizedValue;
+      const y = centerY + Math.sin(angle) * radius * normalizedValue;
       if (i === 0) {
         ctx.moveTo(x, y);
       } else {
@@ -103,75 +120,56 @@ const RadarChart = () => {
     }
     ctx.closePath();
 
-    // Fill with gradient
-    const gradient = ctx.createRadialGradient(
-      centerX,
-      centerY,
-      0,
-      centerX,
-      centerY,
-      radius
-    );
-    gradient.addColorStop(0, "rgba(217, 70, 239, 0.4)");
-    gradient.addColorStop(1, "rgba(139, 92, 246, 0.1)");
-    ctx.fillStyle = gradient;
+    // Fill with neutral gray at 40% opacity
+    ctx.fillStyle = "rgba(189, 189, 189, 0.4)"; // #BDBDBD at 40%
     ctx.fill();
 
-    ctx.strokeStyle = "rgba(217, 70, 239, 0.8)";
-    ctx.lineWidth = 2;
+    // Border with slightly darker gray
+    ctx.strokeStyle = "#9C9C9C"; // Slightly darker gray
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Draw data points
+    // Draw numeric values at each vertex
     for (let i = 0; i < numAxes; i++) {
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-      const value = data[i].value / 100;
-      const x = centerX + Math.cos(angle) * radius * value;
-      const y = centerY + Math.sin(angle) * radius * value;
+      const normalizedValue = data[i].value / maxValue;
+      const x = centerX + Math.cos(angle) * radius * normalizedValue;
+      const y = centerY + Math.sin(angle) * radius * normalizedValue;
 
-      ctx.beginPath();
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#d946ef";
-      ctx.fill();
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      // Position value close to data point
+      const valueOffsetRadius = 10;
+      const valueX = x + Math.cos(angle) * valueOffsetRadius;
+      const valueY = y + Math.sin(angle) * valueOffsetRadius;
+
+      ctx.font = "300 9px sans-serif"; // Light, small font
+      ctx.fillStyle = "#A0A0A0"; // Low contrast
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(Math.round(data[i].value).toString(), valueX, valueY);
     }
   }, [data]);
 
   return (
-    <div className="system-panel p-4 hover-glow animate-fade-in-up animation-delay-100">
-      <div className="text-center mb-2">
-        <span className="text-xs text-muted-foreground uppercase tracking-[0.15em]">Core Metrics</span>
-        <h3 className="text-sm font-gothic text-primary uppercase tracking-wider">Physical Balance</h3>
+    <div className="system-panel p-6 animate-fade-in-up animation-delay-100" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
+      <div className="text-center mb-4">
+        <span className="text-xs uppercase tracking-[0.15em]" style={{ color: '#9A9A9A' }}>Core Metrics</span>
+        <h3 className="text-sm uppercase tracking-wider mt-1" style={{ color: '#666666', fontWeight: 400 }}>Physical Balance</h3>
       </div>
       
       {isLoading ? (
-        <div className="flex items-center justify-center h-[280px]">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="flex items-center justify-center h-[400px]">
+          <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
         </div>
       ) : (
         <div className="relative flex items-center justify-center">
           <canvas
             ref={canvasRef}
-            width={280}
-            height={280}
-            className="w-full max-w-[280px]"
+            width={500}
+            height={500}
+            className="w-full max-w-[500px]"
           />
-          
-          {/* Center decoration */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-3 h-3 rounded-full bg-primary/30 animate-pulse-glow" />
-          </div>
         </div>
       )}
-
-      {/* Health Bar */}
-      <div className="mt-4 text-center border-t border-border/30 pt-3">
-        <div className="text-xs text-muted-foreground uppercase tracking-[0.15em]">System Balance</div>
-        <div className="text-xl font-bold text-foreground mt-1">
-          {stats?.health || 35}<span className="text-muted-foreground">/100</span>
-        </div>
-      </div>
     </div>
   );
 };
