@@ -125,10 +125,13 @@ const RadarChart = () => {
     const dx = x - centerX;
     const dy = y - centerY;
     const clickAngle = Math.atan2(dy, dx);
-    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    // Use squared distance comparison to avoid expensive square root operation
+    const distanceSquared = dx * dx + dy * dy;
+    const maxDistanceSquared = (radius + 50) * (radius + 50);
 
     // Only respond to clicks near the chart area
-    if (distance > radius + 50) return;
+    if (distanceSquared > maxDistanceSquared) return;
 
     // Find the closest axis
     let closestAxisIndex = 0;

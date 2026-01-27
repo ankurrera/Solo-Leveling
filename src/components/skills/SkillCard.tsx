@@ -15,6 +15,9 @@ interface SkillCardProps {
   skill: Skill;
 }
 
+/** Maximum number of metric contributions to display inline on a skill card */
+const MAX_DISPLAYED_CONTRIBUTIONS = 3;
+
 const SkillCard = ({ skill }: SkillCardProps) => {
   const { updateSkill, deleteSkill } = useSkills();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -123,7 +126,7 @@ const SkillCard = ({ skill }: SkillCardProps) => {
             <TooltipProvider>
               <div className="flex items-center gap-1 text-xs flex-wrap">
                 <Target className="w-3 h-3 text-muted-foreground" />
-                {metricContributions.slice(0, 3).map((contribution) => (
+                {metricContributions.slice(0, MAX_DISPLAYED_CONTRIBUTIONS).map((contribution) => (
                   <Tooltip key={contribution.metricName}>
                     <TooltipTrigger asChild>
                       <span className="text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded cursor-help">
@@ -137,9 +140,9 @@ const SkillCard = ({ skill }: SkillCardProps) => {
                     </TooltipContent>
                   </Tooltip>
                 ))}
-                {metricContributions.length > 3 && (
+                {metricContributions.length > MAX_DISPLAYED_CONTRIBUTIONS && (
                   <span className="text-muted-foreground">
-                    +{metricContributions.length - 3} more
+                    +{metricContributions.length - MAX_DISPLAYED_CONTRIBUTIONS} more
                   </span>
                 )}
               </div>
