@@ -21,6 +21,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
  * - Rename skill → label updates
  */
 
+// Maximum XP per skill for radar chart display normalization
+const MAX_SKILL_XP = 2000;
+
 interface SkillDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -92,7 +95,7 @@ const RadarChart = () => {
     return skills.map(skill => ({
       label: skill.name,
       value: skill.xp,
-      maxValue: 2000, // Standard max XP per skill for display consistency
+      maxValue: MAX_SKILL_XP,
       level: skill.level,
       skillId: skill.id
     }));
@@ -198,8 +201,8 @@ const RadarChart = () => {
       return;
     }
     
-    // Use consistent max value for all skills (2000 XP)
-    const maxValue = 2000;
+    // Use consistent max value for all skills
+    const maxValue = MAX_SKILL_XP;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -357,7 +360,7 @@ const RadarChart = () => {
         onOpenChange={(open) => !open && setSelectedSkillIndex(null)}
         skillName={selectedSkill?.name || null}
         skillXp={selectedSkill?.xp || 0}
-        skillMaxXp={selectedSkill ? 2000 : 0}
+        skillMaxXp={MAX_SKILL_XP}
         skillLevel={selectedSkill?.level || 1}
       />
     </div>
