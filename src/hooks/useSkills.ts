@@ -20,6 +20,12 @@ export interface Skill {
   current_streak: number;
   best_streak: number;
   consistency_state: 'consistent' | 'partial' | 'broken' | 'neutral';
+  /**
+   * Metric contribution mappings: { metricId: weight (0-1) }
+   * Skills contribute XP to Core Metrics based on these weights.
+   * If null/undefined, default mappings based on skill area are used.
+   */
+  contributes_to: Record<string, number> | null;
   created_at: string;
   updated_at: string;
 }
@@ -35,6 +41,11 @@ export interface CreateSkillInput {
   goal_type: 'daily' | 'weekly';
   goal_minutes: number;
   base_xp: number;
+  /**
+   * Metric contribution mappings: { metricId: weight (0-1) }
+   * If not provided, default mappings based on skill area will be used.
+   */
+  contributes_to?: Record<string, number>;
 }
 
 export interface UpdateSkillInput {
@@ -51,6 +62,10 @@ export interface UpdateSkillInput {
   current_streak?: number;
   best_streak?: number;
   consistency_state?: 'consistent' | 'partial' | 'broken' | 'neutral';
+  /**
+   * Metric contribution mappings: { metricId: weight (0-1) }
+   */
+  contributes_to?: Record<string, number> | null;
 }
 
 export const useSkills = () => {
