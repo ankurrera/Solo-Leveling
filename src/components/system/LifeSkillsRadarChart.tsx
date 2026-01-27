@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 
 interface LifeSkill {
   label: string;
@@ -8,8 +8,8 @@ interface LifeSkill {
 const LifeSkillsRadarChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // 18 life skills as specified in requirements
-  const lifeSkills: LifeSkill[] = [
+  // 18 life skills as specified in requirements - memoized to prevent unnecessary re-renders
+  const lifeSkills: LifeSkill[] = useMemo(() => [
     { label: "Programming", value: 1250 },
     { label: "Learning", value: 890 },
     { label: "Erudition", value: 1100 },
@@ -28,7 +28,7 @@ const LifeSkillsRadarChart = () => {
     { label: "Math", value: 1030 },
     { label: "Music", value: 590 },
     { label: "Cleaning", value: 1720 },
-  ];
+  ], []);
 
   const maxValue = 2000; // Maximum XP level
   const numRings = 5; // Number of concentric rings
