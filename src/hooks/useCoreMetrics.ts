@@ -150,12 +150,46 @@ export function useCoreMetrics(): UseCoreMetricsResult {
   
   // Compute all Core Metrics (this is the main calculation)
   const coreMetrics = useMemo(() => {
-    return computeAllCoreMetrics(skillContributions, characteristicContributions);
+    const metrics = computeAllCoreMetrics(skillContributions, characteristicContributions);
+    
+    // Debug logging: Log recomputation of metrics
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Core Metrics] Recomputed from skills:', {
+        skillCount: skillContributions.length,
+        charCount: characteristicContributions.length,
+        metricsCount: metrics.length,
+        totalXP: metrics.reduce((sum, m) => sum + m.xp, 0),
+        timestamp: new Date().toISOString(),
+      });
+    }
+    
+    return metrics;
   }, [skillContributions, characteristicContributions]);
   
   // Get radar chart data (clamped to MAX_METRIC_XP)
   const radarData = useMemo(() => {
-    return getRadarChartData(coreMetrics);
+    const data = getRadarChartData(coreMetrics);
+    
+    // Debug logging: Verify radar data matches core metrics
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Radar Data] Updated:', {
+        radarPoints: data.length,
+        coreMetricsCount: coreMetrics.length,
+        match: data.length === coreMetrics.length,
+        sampleMetric: data[0]?.label,
+        sampleValue: data[0]?.value,
+      });
+      
+      // Assert that radar data length matches core metrics length
+      if (data.length !== coreMetrics.length) {
+        console.error('[CRITICAL] Radar data length mismatch!', {
+          expected: coreMetrics.length,
+          actual: data.length,
+        });
+      }
+    }
+    
+    return data;
   }, [coreMetrics]);
   
   // Calculate aggregate stats
