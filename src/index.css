@@ -131,6 +131,25 @@
     background: hsl(var(--panel-bg));
   }
 
+  /* Notion-style Card Container */
+  .notion-card {
+    @apply relative rounded-lg border;
+    background: hsl(var(--background));
+    border-color: hsl(var(--border));
+    padding: 1.5rem;
+  }
+
+  /* Notion-style Progress Bar - Monochrome */
+  .notion-progress-bar {
+    @apply relative h-2 rounded-sm overflow-hidden;
+    background: hsl(var(--muted));
+  }
+
+  .notion-progress-fill {
+    @apply h-full rounded-sm transition-all duration-700 ease-out;
+    background: hsl(var(--foreground));
+  }
+
   /* Progress Bar - Neutral Grayscale */
   .system-progress {
     @apply relative h-3 rounded-full overflow-hidden;
