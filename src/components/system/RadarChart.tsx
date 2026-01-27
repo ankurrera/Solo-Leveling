@@ -68,17 +68,20 @@ const RadarChart = () => {
     const radius = Math.min(centerX, centerY) - 60; // More padding for labels
     const numAxes = data.length;
     const maxValue = 2000; // Scale from 0 to 2000
+    
+    // Ensure data polygon occupies ~55-70% of chart radius
+    // This prevents the "small spiky star" look by scaling up the visual impact
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw polygon grid rings (NOT circular)
+    // Draw polygon grid rings (NOT circular) - thin, evenly spaced, light gray
     const levels = 10; // For 0, 200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000
     for (let i = levels; i >= 1; i--) {
       const levelRadius = (radius / levels) * i;
       ctx.beginPath();
-      ctx.strokeStyle = "#E5E5E5"; // Very light gray for grid rings
-      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = "#E6E6E6"; // Light gray for grid rings (exact spec)
+      ctx.lineWidth = 0.5; // Thin lines
 
       for (let j = 0; j <= numAxes; j++) {
         const angle = (Math.PI * 2 * j) / numAxes - Math.PI / 2;
@@ -94,7 +97,7 @@ const RadarChart = () => {
       ctx.stroke();
     }
 
-    // Draw axes lines
+    // Draw axes lines - slightly darker than grid, still subtle and thin
     for (let i = 0; i < numAxes; i++) {
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
       const x = centerX + Math.cos(angle) * radius;
@@ -103,8 +106,8 @@ const RadarChart = () => {
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(x, y);
-      ctx.strokeStyle = "#CCCCCC"; // Slightly darker gray for axes
-      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = "#D0D0D0"; // Slightly darker than grid, still subtle
+      ctx.lineWidth = 0.5; // Thin line
       ctx.stroke();
     }
 
@@ -114,15 +117,15 @@ const RadarChart = () => {
     ctx.fillStyle = "#9A9A9A";
     ctx.fill();
 
-    // Draw labels outside the outer grid
+    // Draw labels outside the outer grid - thin, sans-serif, small, muted gray
     for (let i = 0; i < numAxes; i++) {
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
       const labelRadius = radius + 30;
       const labelX = centerX + Math.cos(angle) * labelRadius;
       const labelY = centerY + Math.sin(angle) * labelRadius;
       
-      ctx.font = "300 10px sans-serif"; // Small, thin, sans-serif
-      ctx.fillStyle = "#9A9A9A"; // Muted gray
+      ctx.font = "300 10px sans-serif"; // Thin, small, sans-serif
+      ctx.fillStyle = "#8E8E8E"; // Muted gray (exact spec)
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(data[i].label, labelX, labelY);
@@ -144,29 +147,29 @@ const RadarChart = () => {
     }
     ctx.closePath();
 
-    // Fill with neutral gray at 40% opacity
-    ctx.fillStyle = "rgba(189, 189, 189, 0.4)"; // #BDBDBD at 40%
+    // Fill with neutral gray (#C8C8C8) at 40-45% opacity (spec)
+    ctx.fillStyle = "rgba(200, 200, 200, 0.42)"; // #C8C8C8 at 42%
     ctx.fill();
 
-    // Border with slightly darker gray
-    ctx.strokeStyle = "#9C9C9C"; // Slightly darker gray
-    ctx.lineWidth = 1.5;
+    // Border with #9B9B9B at 1-1.5px (spec)
+    ctx.strokeStyle = "#9B9B9B"; // Exact spec color
+    ctx.lineWidth = 1.25; // 1.25px within 1-1.5px range
     ctx.stroke();
 
-    // Draw numeric values at each vertex
+    // Draw numeric values at each vertex - small, light weight, low contrast
     for (let i = 0; i < numAxes; i++) {
       const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
       const normalizedValue = data[i].value / maxValue;
       const x = centerX + Math.cos(angle) * radius * normalizedValue;
       const y = centerY + Math.sin(angle) * radius * normalizedValue;
 
-      // Position value close to data point
+      // Position value close to data point, offset slightly away from polygon
       const valueOffsetRadius = 10;
       const valueX = x + Math.cos(angle) * valueOffsetRadius;
       const valueY = y + Math.sin(angle) * valueOffsetRadius;
 
-      ctx.font = "300 9px sans-serif"; // Light, small font
-      ctx.fillStyle = "#A0A0A0"; // Low contrast
+      ctx.font = "300 8px sans-serif"; // Very small, light weight
+      ctx.fillStyle = "#9A9A9A"; // Low contrast (exact spec)
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(Math.round(data[i].value).toString(), valueX, valueY);
@@ -174,10 +177,10 @@ const RadarChart = () => {
   }, [data]);
 
   return (
-    <div className="system-panel p-6 animate-fade-in-up animation-delay-100" style={{ background: '#f8f8f8' }}>
+    <div className="system-panel p-6 animate-fade-in-up animation-delay-100" style={{ background: '#FAFAFA' }}>
       <div className="text-center mb-4">
-        <span className="text-xs uppercase tracking-[0.15em]" style={{ color: '#9A9A9A' }}>Core Metrics</span>
-        <h3 className="text-sm uppercase tracking-wider mt-1" style={{ color: '#666666', fontWeight: 400 }}>Physical Balance</h3>
+        <div className="text-xs uppercase tracking-[0.2em] mb-0.5" style={{ color: '#9A9A9A', fontWeight: 300 }}>CORE METRICS</div>
+        <div className="text-xs uppercase tracking-[0.2em]" style={{ color: '#9A9A9A', fontWeight: 300 }}>PHYSICAL BALANCE</div>
       </div>
       
       {isLoading ? (
