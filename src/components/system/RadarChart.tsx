@@ -1,91 +1,77 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { useCoreMetrics } from "@/hooks/useCoreMetrics";
-import { MAX_METRIC_XP, CoreMetricName } from "@/lib/coreMetrics";
+import { useSkills } from "@/hooks/useSkills";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 /**
  * Physical Balance Radar Chart Component
  * 
  * CORE PRINCIPLE (NON-NEGOTIABLE):
- * - Radar reads ONLY Core Metric XP
- * - Core Metric XP is COMPUTED from Skills and Characteristics
- * - No hardcoded radar values
+ * - Radar reads DIRECTLY from Skills
+ * - Each Skill = One Radar Axis
+ * - No aggregation, no grouping, no core metrics layer
  * 
  * HARD OVERRIDE LINE:
- * "If the radar chart is not driven entirely by computed Core Metric XP derived from Skills, 
- * the implementation is incorrect."
+ * "Render ONE radar axis per Skill. Do not group, bucket, or aggregate multiple skills 
+ * into fewer axes under any circumstances."
  * 
- * BI-DIRECTIONAL DEBUGGING:
- * - Clicking a radar axis shows list of contributing skills with XP per skill
+ * LIVE SYNCHRONIZATION:
+ * - Create skill → new axis appears
+ * - Delete skill → axis disappears
+ * - Update skill XP → vertex extends/contracts
+ * - Rename skill → label updates
  */
 
-interface MetricDetailDialogProps {
+interface SkillDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  metricName: CoreMetricName | null;
-  metricXp: number;
-  contributions: Array<{
-    skillId: string;
-    skillName: string;
-    skillXp: number;
-    weight: number;
-    contributedXp: number;
-  }>;
+  skillName: string | null;
+  skillXp: number;
+  skillMaxXp: number;
+  skillLevel: number;
 }
 
-const MetricDetailDialog = ({ 
+const SkillDetailDialog = ({ 
   open, 
   onOpenChange, 
-  metricName, 
-  metricXp,
-  contributions 
-}: MetricDetailDialogProps) => {
+  skillName, 
+  skillXp,
+  skillMaxXp,
+  skillLevel
+}: SkillDetailDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="system-panel max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-normal text-foreground">
-            {metricName}
+            {skillName}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4 mt-4">
-          {/* Total XP */}
+          {/* Current XP */}
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
-            <span className="text-muted-foreground">Total XP</span>
-            <span className="text-lg font-medium text-foreground">{metricXp} XP</span>
+            <span className="text-muted-foreground">Current XP</span>
+            <span className="text-lg font-medium text-foreground">{skillXp} XP</span>
           </div>
           
-          {/* Contributing Skills */}
-          <div>
-            <h4 className="text-xs text-muted-foreground uppercase tracking-wider mb-3">
-              Contributing Skills ({contributions.length})
-            </h4>
-            
-            {contributions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No skills currently contribute to this metric
-              </p>
-            ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {contributions.map((contribution) => (
-                  <div 
-                    key={contribution.skillId}
-                    className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm"
-                  >
-                    <div>
-                      <span className="text-foreground">{contribution.skillName}</span>
-                      <span className="text-muted-foreground ml-2">
-                        ({contribution.skillXp} XP × {Math.round(contribution.weight * 100)}%)
-                      </span>
-                    </div>
-                    <span className="font-medium text-primary">
-                      +{contribution.contributedXp} XP
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+          {/* Max XP */}
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+            <span className="text-muted-foreground">Max XP (Display)</span>
+            <span className="text-lg font-medium text-foreground">{skillMaxXp} XP</span>
+          </div>
+          
+          {/* Level */}
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+            <span className="text-muted-foreground">Level</span>
+            <span className="text-lg font-medium text-foreground">Level {skillLevel}</span>
+          </div>
+          
+          {/* Progress Percentage */}
+          <div className="flex items-center justify-between p-3 bg-muted/50 rounded">
+            <span className="text-muted-foreground">Progress</span>
+            <span className="text-lg font-medium text-primary">
+              {Math.round((skillXp / skillMaxXp) * 100)}%
+            </span>
           </div>
         </div>
       </DialogContent>
@@ -95,24 +81,34 @@ const MetricDetailDialog = ({
 
 const RadarChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [selectedMetric, setSelectedMetric] = useState<CoreMetricName | null>(null);
+  const [selectedSkillIndex, setSelectedSkillIndex] = useState<number | null>(null);
   
-  // Use computed Core Metrics - this is the ONLY data source for the radar
-  const { radarData, isLoading, coreMetrics, getMetricContributors } = useCoreMetrics();
+  // SINGLE SOURCE OF TRUTH: Skills directly from database
+  const { skills, isLoading } = useSkills();
   
-  // radarData is computed from Skills and Characteristics XP
-  // It automatically updates when skill XP changes, attendance is marked, or time is edited
+  // Transform skills to radar data format
+  // Each skill = one axis, no aggregation
+  const radarData = useMemo(() => {
+    return skills.map(skill => ({
+      label: skill.name,
+      value: skill.xp,
+      maxValue: 2000, // Standard max XP per skill for display consistency
+      level: skill.level,
+      skillId: skill.id
+    }));
+  }, [skills]);
+  
   const data = radarData;
   
-  // Memoize total contributing skills count to avoid recalculating on every render
-  const totalContributingSkills = useMemo(() => {
-    return coreMetrics.reduce((sum, m) => sum + m.contributions.length, 0);
-  }, [coreMetrics]);
+  // Track statistics for debugging
+  const totalSkills = skills.length;
+  const activeSkills = useMemo(() => {
+    return skills.filter(s => s.is_active).length;
+  }, [skills]);
   
-  // Memoize non-zero metrics count
-  const nonZeroMetricsCount = useMemo(() => {
-    return coreMetrics.filter(m => m.xp > 0).length;
-  }, [coreMetrics]);
+  const nonZeroSkills = useMemo(() => {
+    return skills.filter(s => s.xp > 0).length;
+  }, [skills]);
 
   // Handle canvas click to detect which axis was clicked
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -163,17 +159,12 @@ const RadarChart = () => {
     // Threshold: only select if click is within ~20 degrees of an axis
     const angleThreshold = Math.PI / 9; // ~20 degrees
     if (minAngleDiff < angleThreshold) {
-      setSelectedMetric(data[closestAxisIndex].label as CoreMetricName);
+      setSelectedSkillIndex(closestAxisIndex);
     }
   }, [data]);
 
-  // Get contributions for selected metric
-  const selectedMetricContributions = selectedMetric 
-    ? getMetricContributors(selectedMetric) 
-    : [];
-  const selectedMetricData = selectedMetric 
-    ? coreMetrics.find(m => m.name === selectedMetric) 
-    : null;
+  // Get selected skill details
+  const selectedSkill = selectedSkillIndex !== null ? skills[selectedSkillIndex] : null;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -184,10 +175,10 @@ const RadarChart = () => {
     
     // Debug logging: Log radar re-renders
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Radar Chart] Re-rendering with data:', {
-        dataPoints: data.length,
+      console.log('[Radar Chart] Re-rendering with skills:', {
+        skillCount: data.length,
         timestamp: new Date().toISOString(),
-        sampleMetrics: data.slice(0, 3).map(d => ({ label: d.label, value: d.value })),
+        sampleSkills: data.slice(0, 3).map(d => ({ label: d.label, value: d.value })),
       });
     }
 
@@ -195,10 +186,20 @@ const RadarChart = () => {
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 60; // More padding for labels
     const numAxes = data.length;
-    const maxValue = MAX_METRIC_XP; // Max per metric: 2000 XP (from coreMetrics constants)
     
-    // Ensure data polygon occupies ~55-70% of chart radius
-    // This prevents the "small spiky star" look by scaling up the visual impact
+    // If no skills, show empty state
+    if (numAxes === 0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "14px sans-serif";
+      ctx.fillStyle = "#999";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("No skills yet. Create skills to see your radar chart.", centerX, centerY);
+      return;
+    }
+    
+    // Use consistent max value for all skills (2000 XP)
+    const maxValue = 2000;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -311,12 +312,15 @@ const RadarChart = () => {
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
           <div className="font-semibold text-blue-900 mb-2">🔍 Debug Info</div>
           <div className="space-y-1 text-blue-700">
-            <div>Radar Points: {data.length}</div>
-            <div>Core Metrics: {coreMetrics.length}</div>
-            <div>Total Contributing Skills: {totalContributingSkills}</div>
-            <div>Non-Zero Metrics: {nonZeroMetricsCount}</div>
+            <div>Total Skills: {totalSkills}</div>
+            <div>Radar Axes: {data.length}</div>
+            <div>Active Skills: {activeSkills}</div>
+            <div>Skills with XP: {nonZeroSkills}</div>
             <div className="text-blue-500 text-[10px] mt-2">
-              Click metrics to see contributors
+              ✅ Each skill = one radar axis (1:1 mapping)
+            </div>
+            <div className="text-blue-500 text-[10px]">
+              Click skills to see details
             </div>
           </div>
         </div>
@@ -335,22 +339,26 @@ const RadarChart = () => {
               height={500}
               className="w-full max-w-[500px] cursor-pointer"
               onClick={handleCanvasClick}
-              title="Click on a metric axis to see contributing skills"
+              title="Click on a skill axis to see details"
             />
           </div>
           <p className="text-xs text-center text-muted-foreground mt-2">
-            Click on a metric label to see contributing skills
+            {data.length === 0 
+              ? "No skills yet. Create skills on the Skills page to see your radar chart." 
+              : `Showing ${data.length} skill${data.length !== 1 ? 's' : ''} as radar axes. Click to see details.`
+            }
           </p>
         </>
       )}
       
-      {/* Metric Detail Dialog - bi-directional debugging */}
-      <MetricDetailDialog
-        open={selectedMetric !== null}
-        onOpenChange={(open) => !open && setSelectedMetric(null)}
-        metricName={selectedMetric}
-        metricXp={selectedMetricData?.xp || 0}
-        contributions={selectedMetricContributions}
+      {/* Skill Detail Dialog */}
+      <SkillDetailDialog
+        open={selectedSkillIndex !== null}
+        onOpenChange={(open) => !open && setSelectedSkillIndex(null)}
+        skillName={selectedSkill?.name || null}
+        skillXp={selectedSkill?.xp || 0}
+        skillMaxXp={selectedSkill ? 2000 : 0}
+        skillLevel={selectedSkill?.level || 1}
       />
     </div>
   );
