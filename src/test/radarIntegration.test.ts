@@ -261,9 +261,9 @@ describe("Radar Integration - Full CRUD Flow", () => {
     // Raw metric should have full XP
     expect(metrics.find(m => m.name === 'Programming')?.xp).toBe(5000);
     
-    // Radar should clamp to MAX_METRIC_XP
+    // Radar should clamp to MAX_METRIC_XP (2000)
     expect(radarData.find(d => d.label === 'Programming')?.value).toBe(MAX_METRIC_XP);
-    expect(radarData.find(d => d.label === 'Programming')?.value).toBe(2000);
+    expect(MAX_METRIC_XP).toBe(2000); // Verify constant value
   });
 
   it("CRITICAL: verifies skill with 0 XP contributes 0 to all metrics", () => {

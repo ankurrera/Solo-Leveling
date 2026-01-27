@@ -182,10 +182,15 @@ export function useCoreMetrics(): UseCoreMetricsResult {
       
       // Assert that radar data length matches core metrics length
       if (data.length !== coreMetrics.length) {
-        console.error('[CRITICAL] Radar data length mismatch!', {
+        const error = `[CRITICAL] Radar data length mismatch! Expected ${coreMetrics.length}, got ${data.length}`;
+        console.error(error, {
           expected: coreMetrics.length,
           actual: data.length,
         });
+        // In development, throw error to catch issues immediately
+        if (process.env.NODE_ENV === 'development') {
+          throw new Error(error);
+        }
       }
     }
     

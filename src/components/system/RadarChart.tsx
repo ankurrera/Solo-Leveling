@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useCoreMetrics } from "@/hooks/useCoreMetrics";
 import { MAX_METRIC_XP, CoreMetricName } from "@/lib/coreMetrics";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -103,6 +103,16 @@ const RadarChart = () => {
   // radarData is computed from Skills and Characteristics XP
   // It automatically updates when skill XP changes, attendance is marked, or time is edited
   const data = radarData;
+  
+  // Memoize total contributing skills count to avoid recalculating on every render
+  const totalContributingSkills = useMemo(() => {
+    return coreMetrics.reduce((sum, m) => sum + m.contributions.length, 0);
+  }, [coreMetrics]);
+  
+  // Memoize non-zero metrics count
+  const nonZeroMetricsCount = useMemo(() => {
+    return coreMetrics.filter(m => m.xp > 0).length;
+  }, [coreMetrics]);
 
   // Handle canvas click to detect which axis was clicked
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -311,8 +321,8 @@ const RadarChart = () => {
           <div className="space-y-1 text-blue-700">
             <div>Radar Points: {data.length}</div>
             <div>Core Metrics: {coreMetrics.length}</div>
-            <div>Total Contributing Skills: {coreMetrics.reduce((sum, m) => sum + m.contributions.length, 0)}</div>
-            <div>Non-Zero Metrics: {coreMetrics.filter(m => m.xp > 0).length}</div>
+            <div>Total Contributing Skills: {totalContributingSkills}</div>
+            <div>Non-Zero Metrics: {nonZeroMetricsCount}</div>
             <div className="text-blue-500 text-[10px] mt-2">
               Click metrics to see contributors
             </div>
