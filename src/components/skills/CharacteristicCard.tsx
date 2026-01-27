@@ -3,7 +3,10 @@ import { Characteristic, useCharacteristics } from "@/hooks/useCharacteristics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calculateLevelProgress } from "@/lib/levelCalculation";
-import { Edit2, Trash2, Save, X, Star } from "lucide-react";
+import { Edit2, Trash2, Save, X, Star, Calendar as CalendarIcon } from "lucide-react";
+import { getConsistencyStatusMessage } from "@/lib/consistencyCalculations";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import CharacteristicCalendar from "./CharacteristicCalendar";
 import ConfirmDialog from "./ConfirmDialog";
 
 interface CharacteristicCardProps {
@@ -14,6 +17,7 @@ const CharacteristicCard = ({ characteristic }: CharacteristicCardProps) => {
   const { updateCharacteristic, deleteCharacteristic } = useCharacteristics();
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [editName, setEditName] = useState(characteristic.name);
   const [editIcon, setEditIcon] = useState(characteristic.icon);
   const [editXP, setEditXP] = useState(characteristic.xp.toString());
@@ -129,6 +133,19 @@ const CharacteristicCard = ({ characteristic }: CharacteristicCardProps) => {
         </div>
       </div>
 
+      {/* Streak and Consistency */}
+      {!isEditing && (
+        <div className="flex items-center justify-between text-xs border-t border-border/30 pt-2">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">Streak:</span>
+            <span className="font-medium text-foreground">{characteristic.current_streak}</span>
+          </div>
+          <span className="text-muted-foreground">
+            {getConsistencyStatusMessage(characteristic.consistency_state, characteristic.current_streak)}
+          </span>
+        </div>
+      )}
+
       {/* XP Input (when editing) */}
       {isEditing && (
         <div>
@@ -158,6 +175,25 @@ const CharacteristicCard = ({ characteristic }: CharacteristicCardProps) => {
           />
         </div>
       </div>
+
+      {/* Calendar Section */}
+      {!isEditing && (
+        <Collapsible open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full border-border/30 hover:bg-muted"
+              size="sm"
+            >
+              <CalendarIcon className="w-3 h-3 mr-2" />
+              {isCalendarOpen ? "Hide Calendar" : "Track Progress"}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-3">
+            <CharacteristicCalendar characteristic={characteristic} />
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
 
       {/* Delete Confirmation Dialog */}

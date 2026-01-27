@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Skill, useSkills } from "@/hooks/useSkills";
 import { Button } from "@/components/ui/button";
 import { calculateLevelProgress } from "@/lib/levelCalculation";
-import { Edit2, Trash2, Star, Power, PowerOff } from "lucide-react";
+import { Edit2, Trash2, Star, Power, PowerOff, Calendar as CalendarIcon } from "lucide-react";
+import { getConsistencyStatusMessage } from "@/lib/consistencyCalculations";
 import EditSkillDialog from "./EditSkillDialog";
 import ConfirmDialog from "./ConfirmDialog";
+import SkillCalendar from "./SkillCalendar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface SkillCardProps {
   skill: Skill;
@@ -14,6 +17,7 @@ const SkillCard = ({ skill }: SkillCardProps) => {
   const { updateSkill, deleteSkill } = useSkills();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const progress = calculateLevelProgress(skill.xp);
 
@@ -102,6 +106,17 @@ const SkillCard = ({ skill }: SkillCardProps) => {
             </div>
           </div>
 
+          {/* Streak and Consistency */}
+          <div className="flex items-center justify-between text-xs border-t border-border/30 pt-2">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Streak:</span>
+              <span className="font-medium text-foreground">{skill.current_streak} days</span>
+            </div>
+            <span className="text-muted-foreground">
+              {getConsistencyStatusMessage(skill.consistency_state, skill.current_streak)}
+            </span>
+          </div>
+
           {/* XP Progress Bar */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -128,6 +143,23 @@ const SkillCard = ({ skill }: SkillCardProps) => {
               })}
             </div>
           </div>
+
+          {/* Calendar Section */}
+          <Collapsible open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full border-border/30 hover:bg-muted"
+                size="sm"
+              >
+                <CalendarIcon className="w-3 h-3 mr-2" />
+                {isCalendarOpen ? "Hide Calendar" : "Track Progress"}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3">
+              <SkillCalendar skill={skill} />
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Active/Inactive Toggle */}
           <div className="flex items-center justify-between pt-2 border-t border-border/30">

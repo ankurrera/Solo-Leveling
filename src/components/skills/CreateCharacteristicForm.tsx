@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCharacteristics } from "@/hooks/useCharacteristics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react";
 import { CHARACTERISTIC_ICONS } from "@/lib/skillsConstants";
 
@@ -13,17 +14,22 @@ const CreateCharacteristicForm = ({ onClose }: CreateCharacteristicFormProps) =>
   const { createCharacteristic } = useCharacteristics();
   const [name, setName] = useState("");
   const [icon, setIcon] = useState(CHARACTERISTIC_ICONS[0]);
-  const [xp, setXP] = useState("0");
+  const [goalType, setGoalType] = useState<'daily' | 'weekly'>('daily');
+  const [goalMinutes, setGoalMinutes] = useState("30");
+  const [baseXp, setBaseXp] = useState("50");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !goalMinutes || !baseXp) return;
 
     createCharacteristic.mutate(
       {
         name: name.trim(),
         icon,
-        xp: parseInt(xp) || 0,
+        xp: 0, // Start with 0 XP, will be calculated from attendance
+        goal_type: goalType,
+        goal_minutes: parseInt(goalMinutes),
+        base_xp: parseInt(baseXp),
       },
       {
         onSuccess: () => {
@@ -79,7 +85,7 @@ const CreateCharacteristicForm = ({ onClose }: CreateCharacteristicFormProps) =>
         {/* Name */}
         <div>
           <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
-            Name
+            Name *
           </label>
           <Input
             value={name}
@@ -90,19 +96,63 @@ const CreateCharacteristicForm = ({ onClose }: CreateCharacteristicFormProps) =>
           />
         </div>
 
-        {/* Initial XP */}
-        <div>
-          <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
-            Initial XP
-          </label>
-          <Input
-            type="number"
-            value={xp}
-            onChange={(e) => setXP(e.target.value)}
-            placeholder="0"
-            className="bg-input border-border"
-            min="0"
-          />
+        {/* Time Goal Section */}
+        <div className="border-t border-border/30 pt-3 space-y-3">
+          <h4 className="text-xs font-medium text-foreground">Development Time Goal *</h4>
+          
+          {/* Goal Type */}
+          <div>
+            <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+              Goal Type *
+            </label>
+            <Select value={goalType} onValueChange={(value: 'daily' | 'weekly') => setGoalType(value)}>
+              <SelectTrigger className="bg-input border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Goal Minutes */}
+          <div>
+            <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+              Time Goal (minutes) *
+            </label>
+            <Input
+              type="number"
+              value={goalMinutes}
+              onChange={(e) => setGoalMinutes(e.target.value)}
+              placeholder="30"
+              className="bg-input border-border"
+              min="1"
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {goalType === 'daily' ? 'Minutes per day' : 'Minutes per week'}
+            </p>
+          </div>
+
+          {/* Base XP */}
+          <div>
+            <label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">
+              Base XP *
+            </label>
+            <Input
+              type="number"
+              value={baseXp}
+              onChange={(e) => setBaseXp(e.target.value)}
+              placeholder="50"
+              className="bg-input border-border"
+              min="1"
+              required
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              XP per successful day
+            </p>
+          </div>
         </div>
 
         {/* Actions */}
@@ -117,7 +167,7 @@ const CreateCharacteristicForm = ({ onClose }: CreateCharacteristicFormProps) =>
           </Button>
           <Button
             type="submit"
-            disabled={!name.trim() || createCharacteristic.isPending}
+            disabled={!name.trim() || !goalMinutes || !baseXp || createCharacteristic.isPending}
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             {createCharacteristic.isPending ? "Creating..." : "Create"}
