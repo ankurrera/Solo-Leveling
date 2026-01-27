@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useSkills } from "@/hooks/useSkills";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -89,29 +89,37 @@ const RadarChart = () => {
   // SINGLE SOURCE OF TRUTH: Skills directly from database
   const { skills, isLoading } = useSkills();
   
+  // Debug: Log every render
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Radar Chart] Component rendering:', {
+      timestamp: new Date().toISOString(),
+      skillCount: skills.length,
+    });
+  }
+  
   // Transform skills to radar data format
   // Each skill = one axis, no aggregation
-  const radarData = useMemo(() => {
-    return skills.map(skill => ({
-      label: skill.name,
-      value: skill.xp,
-      maxValue: MAX_SKILL_XP,
-      level: skill.level,
-      skillId: skill.id
-    }));
-  }, [skills]);
+  // CRITICAL: No useMemo - always derive directly from skills to ensure reactivity
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Radar Chart] Deriving radarData:', {
+      skillCount: skills.length,
+      timestamp: new Date().toISOString(),
+      skillsSnapshot: skills.map(s => ({ name: s.name, xp: s.xp, id: s.id }))
+    });
+  }
   
-  const data = radarData;
+  const data = skills.map(skill => ({
+    label: skill.name,
+    value: skill.xp,
+    maxValue: MAX_SKILL_XP,
+    level: skill.level,
+    skillId: skill.id
+  }));
   
   // Track statistics for debugging
   const totalSkills = skills.length;
-  const activeSkills = useMemo(() => {
-    return skills.filter(s => s.is_active).length;
-  }, [skills]);
-  
-  const nonZeroSkills = useMemo(() => {
-    return skills.filter(s => s.xp > 0).length;
-  }, [skills]);
+  const activeSkills = skills.filter(s => s.is_active).length;
+  const nonZeroSkills = skills.filter(s => s.xp > 0).length;
 
   // Handle canvas click to detect which axis was clicked
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
