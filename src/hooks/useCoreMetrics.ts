@@ -72,18 +72,46 @@ function mapSkillToContributionData(skill: {
 }
 
 /**
+ * Normalized mapping of characteristic names to Core Metric names
+ * Handles naming variations (e.g., 'Foreign Languages' -> 'Foreign Language')
+ */
+const CHARACTERISTIC_TO_METRIC_MAP: Record<string, CoreMetricName> = {
+  'programming': 'Programming',
+  'learning': 'Learning',
+  'erudition': 'Erudition',
+  'discipline': 'Discipline',
+  'productivity': 'Productivity',
+  'foreign language': 'Foreign Language',
+  'foreign languages': 'Foreign Language',
+  'language': 'Foreign Language',
+  'languages': 'Foreign Language',
+  'fitness': 'Fitness',
+  'drawing': 'Drawing',
+  'hygiene': 'Hygiene',
+  'reading': 'Reading',
+  'communication': 'Communication',
+  'cooking': 'Cooking',
+  'meditation': 'Meditation',
+  'swimming': 'Swimming',
+  'running': 'Running',
+  'math': 'Math',
+  'mathematics': 'Math',
+  'music': 'Music',
+  'cleaning': 'Cleaning',
+};
+
+/**
  * Map characteristic data to contribution format
- * Characteristics contribute to their namesake metric if it exists
+ * Uses a predefined mapping for reliable characteristic-to-metric matching
  */
 function mapCharacteristicToContributionData(char: {
   id: string;
   name: string;
   xp: number;
 }): CharacteristicContributionData {
-  // Check if the characteristic name matches a Core Metric
-  const metricName = PHYSICAL_BALANCE_METRICS.find(
-    m => m.toLowerCase() === char.name.toLowerCase()
-  );
+  // Use normalized lowercase name for lookup
+  const normalizedName = char.name.toLowerCase().trim();
+  const metricName = CHARACTERISTIC_TO_METRIC_MAP[normalizedName];
   
   return {
     id: char.id,

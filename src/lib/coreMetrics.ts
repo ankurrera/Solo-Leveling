@@ -98,13 +98,19 @@ export function getDefaultMapping(area: string | null): Partial<Record<CoreMetri
 }
 
 /**
+ * Floating point comparison tolerance for weight validation
+ * Used to account for JavaScript floating-point arithmetic imprecision
+ */
+const WEIGHT_SUM_TOLERANCE = 1.0001;
+
+/**
  * Validate that contribution weights sum to ≤ 1
  */
 export function validateContributionWeights(
   contributions: Partial<Record<CoreMetricName, number>>
 ): boolean {
   const sum = Object.values(contributions).reduce((acc, weight) => acc + (weight || 0), 0);
-  return sum <= 1.0001; // Small epsilon for floating point errors
+  return sum <= WEIGHT_SUM_TOLERANCE;
 }
 
 /**
@@ -116,7 +122,7 @@ export function normalizeContributionWeights(
   const result: Partial<Record<CoreMetricName, number>> = {};
   const sum = Object.values(contributions).reduce((acc, weight) => acc + (weight || 0), 0);
   
-  if (sum <= 1.0001) {
+  if (sum <= WEIGHT_SUM_TOLERANCE) {
     // Already valid, just copy
     for (const [key, value] of Object.entries(contributions)) {
       result[key as CoreMetricName] = value || 0;
