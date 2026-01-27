@@ -10,6 +10,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
  * - Radar reads ONLY Core Metric XP
  * - Core Metric XP is COMPUTED from Skills and Characteristics
  * - No hardcoded radar values
+ * - Radar axes are DYNAMIC and generated from active metrics only
+ * 
+ * DYNAMIC RADAR AXES:
+ * "Generate radar axes dynamically from active Core Metrics derived from user Skills.
+ * Remove any metric from the radar if no skills contribute to it."
+ * 
+ * The radar shape changes dynamically:
+ * - When skills are created → new axes appear
+ * - When skills are deleted → axes disappear
+ * - When skill XP changes → polygon reshapes
+ * - Axis count ranges from 0 to 18+ based on active metrics
  * 
  * HARD OVERRIDE LINE:
  * "If the radar chart is not driven entirely by computed Core Metric XP derived from Skills, 
@@ -177,7 +188,7 @@ const RadarChart = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || data.length === 0) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -197,8 +208,9 @@ const RadarChart = () => {
     const numAxes = data.length;
     const maxValue = MAX_METRIC_XP; // Max per metric: 2000 XP (from coreMetrics constants)
     
-    // Ensure data polygon occupies ~55-70% of chart radius
-    // This prevents the "small spiky star" look by scaling up the visual impact
+    // Handle special cases for small numbers of axes
+    const minAxesForPolygon = 3;
+    const shouldDrawAsPolygon = numAxes >= minAxesForPolygon;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -211,17 +223,23 @@ const RadarChart = () => {
       ctx.strokeStyle = "#E6E6E6"; // Light gray for grid rings (exact spec)
       ctx.lineWidth = 0.5; // Thin lines
 
-      for (let j = 0; j <= numAxes; j++) {
-        const angle = (Math.PI * 2 * j) / numAxes - Math.PI / 2;
-        const x = centerX + Math.cos(angle) * levelRadius;
-        const y = centerY + Math.sin(angle) * levelRadius;
-        if (j === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
+      if (shouldDrawAsPolygon) {
+        // Draw as polygon
+        for (let j = 0; j <= numAxes; j++) {
+          const angle = (Math.PI * 2 * j) / numAxes - Math.PI / 2;
+          const x = centerX + Math.cos(angle) * levelRadius;
+          const y = centerY + Math.sin(angle) * levelRadius;
+          if (j === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
         }
+        ctx.closePath();
+      } else {
+        // For 1-2 axes, draw circles instead
+        ctx.arc(centerX, centerY, levelRadius, 0, Math.PI * 2);
       }
-      ctx.closePath();
       ctx.stroke();
     }
 
@@ -259,30 +277,60 @@ const RadarChart = () => {
       ctx.fillText(data[i].label, labelX, labelY);
     }
 
-    // Draw data polygon
-    ctx.beginPath();
-    for (let i = 0; i <= numAxes; i++) {
-      const index = i % numAxes;
-      const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
-      const normalizedValue = data[index].value / maxValue;
-      const x = centerX + Math.cos(angle) * radius * normalizedValue;
-      const y = centerY + Math.sin(angle) * radius * normalizedValue;
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
+    // Draw data polygon or line
+    if (shouldDrawAsPolygon) {
+      // Draw as filled polygon (3+ axes)
+      ctx.beginPath();
+      for (let i = 0; i <= numAxes; i++) {
+        const index = i % numAxes;
+        const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+        const normalizedValue = data[index].value / maxValue;
+        const x = centerX + Math.cos(angle) * radius * normalizedValue;
+        const y = centerY + Math.sin(angle) * radius * normalizedValue;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
       }
+      ctx.closePath();
+
+      // Fill with neutral gray (#C8C8C8) at 40-45% opacity (spec)
+      ctx.fillStyle = "rgba(200, 200, 200, 0.42)"; // #C8C8C8 at 42%
+      ctx.fill();
+
+      // Border with #9B9B9B at 1-1.5px (spec)
+      ctx.strokeStyle = "#9B9B9B"; // Exact spec color
+      ctx.lineWidth = 1.25; // 1.25px within 1-1.5px range
+      ctx.stroke();
+    } else {
+      // For 1-2 axes, draw as points/line
+      ctx.beginPath();
+      for (let i = 0; i < numAxes; i++) {
+        const angle = (Math.PI * 2 * i) / numAxes - Math.PI / 2;
+        const normalizedValue = data[i].value / maxValue;
+        const x = centerX + Math.cos(angle) * radius * normalizedValue;
+        const y = centerY + Math.sin(angle) * radius * normalizedValue;
+        
+        if (numAxes === 1) {
+          // Single point
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+        } else if (numAxes === 2) {
+          // Line between two points
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+      }
+      
+      ctx.strokeStyle = "#9B9B9B";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = "rgba(200, 200, 200, 0.42)";
+      ctx.fill();
     }
-    ctx.closePath();
-
-    // Fill with neutral gray (#C8C8C8) at 40-45% opacity (spec)
-    ctx.fillStyle = "rgba(200, 200, 200, 0.42)"; // #C8C8C8 at 42%
-    ctx.fill();
-
-    // Border with #9B9B9B at 1-1.5px (spec)
-    ctx.strokeStyle = "#9B9B9B"; // Exact spec color
-    ctx.lineWidth = 1.25; // 1.25px within 1-1.5px range
-    ctx.stroke();
 
     // Draw numeric values at each vertex - small, light weight, low contrast
     for (let i = 0; i < numAxes; i++) {
@@ -326,6 +374,30 @@ const RadarChart = () => {
         <div className="flex items-center justify-center h-[400px]">
           <div className="w-8 h-8 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
         </div>
+      ) : data.length === 0 ? (
+        // Empty state when no metrics are active
+        <div className="flex flex-col items-center justify-center h-[400px] text-center px-8">
+          <div className="w-24 h-24 mb-6 opacity-20">
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              <polygon 
+                points="50,10 90,35 90,65 50,90 10,65 10,35" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-muted-foreground mb-2">
+            No Active Metrics
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Your radar chart will appear here once you create skills. 
+            Each skill contributes to different Core Metrics, which form the axes of this chart.
+          </p>
+          <p className="text-xs text-muted-foreground mt-4">
+            Navigate to Skills page to get started →
+          </p>
+        </div>
       ) : (
         <>
           <div className="relative flex items-center justify-center">
@@ -339,7 +411,10 @@ const RadarChart = () => {
             />
           </div>
           <p className="text-xs text-center text-muted-foreground mt-2">
-            Click on a metric label to see contributing skills
+            {data.length === 1 
+              ? "Click on the metric to see contributing skills"
+              : `Click on any of the ${data.length} metrics to see contributing skills`
+            }
           </p>
         </>
       )}

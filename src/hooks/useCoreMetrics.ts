@@ -4,13 +4,24 @@
  * This hook provides reactive Core Metric XP computation from Skills and Characteristics.
  * It recalculates automatically when:
  * - Skill XP changes
+ * - Skills are created or deleted
  * - Attendance is marked
  * - Time spent is edited
+ * - Skill contribution mappings are modified
  * 
  * CORE PRINCIPLE (NON-NEGOTIABLE):
  * - Core Metric XP is COMPUTED, never stored manually
  * - Radar chart reads ONLY Core Metric XP
  * - No hardcoded radar values
+ * 
+ * DYNAMIC RADAR AXES:
+ * "Generate radar axes dynamically from active Core Metrics derived from user Skills.
+ * Remove any metric from the radar if no skills contribute to it."
+ * 
+ * - If no skills exist → radar is empty
+ * - If a skill is created → new metric axes appear
+ * - If a skill is deleted → metric axes may disappear
+ * - Radar shape changes automatically with skill development
  * 
  * HARD OVERRIDE LINE:
  * "If the radar chart is not driven entirely by computed Core Metric XP derived from Skills, 

@@ -1,8 +1,12 @@
 /**
  * Core Metrics System for Solo Leveling
  * 
- * This module defines the 18 Physical Balance metrics that form the radar chart axes.
+ * This module defines the Physical Balance metrics that can be used in the radar chart.
  * Core Metrics receive XP from Skills and Characteristics - they are NEVER directly edited.
+ * 
+ * DYNAMIC RADAR AXES BEHAVIOR:
+ * "Generate radar axes dynamically from active Core Metrics derived from user Skills.
+ * Remove any metric from the radar if no skills contribute to it."
  * 
  * HARD OVERRIDE LINE:
  * "If the radar chart is not driven entirely by computed Core Metric XP derived from Skills, 
@@ -10,8 +14,17 @@
  */
 
 /**
- * The 18 Physical Balance Core Metrics - LOCKED
- * These are the only data source for the radar chart.
+ * Physical Balance Core Metrics - Available Metric Names
+ * 
+ * These are the POSSIBLE metrics that can appear on the radar chart.
+ * The ACTUAL radar axes are generated dynamically based on which metrics
+ * have skills contributing to them.
+ * 
+ * - If no skills contribute to a metric → it does NOT appear on the radar
+ * - If a skill is created that contributes to a metric → the metric appears
+ * - If all skills contributing to a metric are deleted → the metric disappears
+ * 
+ * The radar shape changes dynamically based on the user's actual skill development.
  */
 export const PHYSICAL_BALANCE_METRICS = [
   'Programming',

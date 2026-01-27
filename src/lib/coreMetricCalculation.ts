@@ -131,18 +131,82 @@ export function computeCoreMetricXP(
 }
 
 /**
- * Compute all Core Metrics XP from skills and characteristics
- * This is the main function called by the UI to get radar chart data
+ * Get all unique metric names that have at least one skill/characteristic contributing to them
+ * This generates the dynamic list of active metrics based on actual user data.
  * 
  * @param skills Array of skills with their XP and contribution mappings
  * @param characteristics Array of characteristics with their XP and contribution mappings
- * @returns Array of all 18 computed Core Metrics with XP values
+ * @returns Set of unique metric names that are actively being used
+ */
+export function getActiveMetricNames(
+  skills: SkillContributionData[],
+  characteristics: CharacteristicContributionData[] = []
+): Set<CoreMetricName> {
+  const activeMetrics = new Set<CoreMetricName>();
+  
+  // Collect metrics from skills
+  for (const skill of skills) {
+    const mapping = skill.contributesTo || getDefaultMapping(skill.area);
+    for (const metricName of Object.keys(mapping)) {
+      const weight = mapping[metricName];
+      // Only include if weight > 0 and metric is valid
+      if (weight > 0 && PHYSICAL_BALANCE_METRICS.includes(metricName as CoreMetricName)) {
+        activeMetrics.add(metricName as CoreMetricName);
+      }
+    }
+  }
+  
+  // Collect metrics from characteristics
+  for (const char of characteristics) {
+    const mapping = char.contributesTo || {};
+    for (const metricName of Object.keys(mapping)) {
+      const weight = mapping[metricName];
+      // Only include if weight > 0 and metric is valid
+      if (weight > 0 && PHYSICAL_BALANCE_METRICS.includes(metricName as CoreMetricName)) {
+        activeMetrics.add(metricName as CoreMetricName);
+      }
+    }
+  }
+  
+  return activeMetrics;
+}
+
+/**
+ * Compute all Core Metrics XP from skills and characteristics
+ * This is the main function called by the UI to get radar chart data
+ * 
+ * DYNAMIC BEHAVIOR:
+ * - Only returns metrics that have at least one skill/characteristic contributing to them
+ * - If a metric has no contributors, it will not appear in the radar
+ * - If all skills are deleted, returns empty array
+ * - When skills are added/removed, the metric list changes automatically
+ * 
+ * @param skills Array of skills with their XP and contribution mappings
+ * @param characteristics Array of characteristics with their XP and contribution mappings
+ * @returns Array of computed Core Metrics with XP values (only active metrics)
  */
 export function computeAllCoreMetrics(
   skills: SkillContributionData[],
   characteristics: CharacteristicContributionData[] = []
 ): ComputedCoreMetric[] {
-  return PHYSICAL_BALANCE_METRICS.map(metricName => 
+  // Generate radar axes dynamically from active Core Metrics derived from user Skills.
+  // Remove any metric from the radar if no skills contribute to it.
+  const activeMetrics = getActiveMetricNames(skills, characteristics);
+  
+  // Convert Set to Array and compute each metric
+  const activeMetricArray = Array.from(activeMetrics);
+  
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[Core Metrics] Active metrics computed:', {
+      totalMetrics: activeMetricArray.length,
+      metrics: activeMetricArray,
+      skillCount: skills.length,
+      charCount: characteristics.length,
+    });
+  }
+  
+  return activeMetricArray.map(metricName => 
     computeCoreMetricXP(metricName, skills, characteristics)
   );
 }
