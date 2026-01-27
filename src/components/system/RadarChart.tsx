@@ -304,16 +304,8 @@ const RadarChart = () => {
     }
   }, [data]);
 
-  // Title styling for both lines
-  const titleStyle = { color: '#9A9A9A', fontWeight: 300 };
-  
   return (
     <div className="system-panel p-6 animate-fade-in-up animation-delay-100" style={{ background: '#FAFAFA' }}>
-      <div className="text-center mb-4">
-        <div className="text-xs uppercase tracking-[0.2em] mb-0.5" style={titleStyle}>CORE METRICS</div>
-        <div className="text-xs uppercase tracking-[0.2em]" style={titleStyle}>PHYSICAL BALANCE</div>
-      </div>
-      
       {/* Debug Panel - Only in Development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
