@@ -108,6 +108,9 @@ export const useSkills = () => {
       return data as Skill;
     },
     onSuccess: () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Skills CRUD] Skill created - invalidating queries');
+      }
       queryClient.invalidateQueries({ queryKey: ['skills'] });
       toast.success('Skill created successfully!');
     },
@@ -134,6 +137,9 @@ export const useSkills = () => {
       return data as Skill;
     },
     onSuccess: () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Skills CRUD] Skill updated - invalidating queries');
+      }
       queryClient.invalidateQueries({ queryKey: ['skills'] });
       toast.success('Skill updated successfully!');
     },
@@ -157,6 +163,9 @@ export const useSkills = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Skills CRUD] Skill deleted - invalidating queries');
+      }
       queryClient.invalidateQueries({ queryKey: ['skills'] });
       toast.success('Skill deleted successfully');
     },

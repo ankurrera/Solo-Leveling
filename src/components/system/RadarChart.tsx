@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useCoreMetrics } from "@/hooks/useCoreMetrics";
 import { MAX_METRIC_XP, CoreMetricName } from "@/lib/coreMetrics";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -103,6 +103,16 @@ const RadarChart = () => {
   // radarData is computed from Skills and Characteristics XP
   // It automatically updates when skill XP changes, attendance is marked, or time is edited
   const data = radarData;
+  
+  // Memoize total contributing skills count to avoid recalculating on every render
+  const totalContributingSkills = useMemo(() => {
+    return coreMetrics.reduce((sum, m) => sum + m.contributions.length, 0);
+  }, [coreMetrics]);
+  
+  // Memoize non-zero metrics count
+  const nonZeroMetricsCount = useMemo(() => {
+    return coreMetrics.filter(m => m.xp > 0).length;
+  }, [coreMetrics]);
 
   // Handle canvas click to detect which axis was clicked
   const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
@@ -171,6 +181,15 @@ const RadarChart = () => {
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+    
+    // Debug logging: Log radar re-renders
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Radar Chart] Re-rendering with data:', {
+        dataPoints: data.length,
+        timestamp: new Date().toISOString(),
+        sampleMetrics: data.slice(0, 3).map(d => ({ label: d.label, value: d.value })),
+      });
+    }
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
@@ -294,6 +313,22 @@ const RadarChart = () => {
         <div className="text-xs uppercase tracking-[0.2em] mb-0.5" style={titleStyle}>CORE METRICS</div>
         <div className="text-xs uppercase tracking-[0.2em]" style={titleStyle}>PHYSICAL BALANCE</div>
       </div>
+      
+      {/* Debug Panel - Only in Development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-xs">
+          <div className="font-semibold text-blue-900 mb-2">🔍 Debug Info</div>
+          <div className="space-y-1 text-blue-700">
+            <div>Radar Points: {data.length}</div>
+            <div>Core Metrics: {coreMetrics.length}</div>
+            <div>Total Contributing Skills: {totalContributingSkills}</div>
+            <div>Non-Zero Metrics: {nonZeroMetricsCount}</div>
+            <div className="text-blue-500 text-[10px] mt-2">
+              Click metrics to see contributors
+            </div>
+          </div>
+        </div>
+      )}
       
       {isLoading ? (
         <div className="flex items-center justify-center h-[400px]">
