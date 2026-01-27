@@ -5,6 +5,10 @@ interface LifeSkill {
   value: number;
 }
 
+// Canvas dimensions
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
+
 const LifeSkillsRadarChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -53,8 +57,8 @@ const LifeSkillsRadarChart = () => {
     const radius = Math.min(centerX, centerY) - 60;
     const numAxes = lifeSkills.length;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Clear canvas using logical dimensions
+    ctx.clearRect(0, 0, rect.width, rect.height);
 
     // Draw concentric polygon rings (grid)
     for (let ring = 1; ring <= numRings; ring++) {
@@ -183,7 +187,7 @@ const LifeSkillsRadarChart = () => {
       <div className="flex items-center justify-center">
         <canvas
           ref={canvasRef}
-          style={{ width: "100%", height: "600px", maxWidth: "800px" }}
+          style={{ width: "100%", height: `${CANVAS_HEIGHT}px`, maxWidth: `${CANVAS_WIDTH}px` }}
           className="max-w-full"
         />
       </div>
