@@ -21,7 +21,7 @@ const PotionsPanel = () => {
       icon: <Moon className="w-5 h-5" />, 
       count: behaviorPatterns?.rest_days || 0,
       description: "Rest days taken",
-      color: "from-blue-600 to-blue-800"
+      color: "from-muted to-card"
     },
     { 
       id: "2", 
@@ -29,7 +29,7 @@ const PotionsPanel = () => {
       icon: <Droplet className="w-5 h-5" />, 
       count: behaviorPatterns?.consistency_streaks || 0,
       description: "Training weeks with 3+ sessions",
-      color: "from-cyan-600 to-cyan-800"
+      color: "from-muted to-card"
     },
     { 
       id: "3", 
@@ -37,7 +37,7 @@ const PotionsPanel = () => {
       icon: <Sparkles className="w-5 h-5" />, 
       count: behaviorPatterns?.deload_weeks || 0,
       description: "Recovery weeks",
-      color: "from-purple-600 to-purple-800"
+      color: "from-muted to-card"
     },
     { 
       id: "4", 
@@ -45,7 +45,7 @@ const PotionsPanel = () => {
       icon: <Heart className="w-5 h-5" />, 
       count: behaviorPatterns?.recovery_patterns || 0,
       description: "Balanced recovery patterns",
-      color: "from-amber-600 to-amber-800"
+      color: "from-muted to-card"
     },
   ];
 
@@ -61,7 +61,7 @@ const PotionsPanel = () => {
       icon: <Heart className="w-5 h-5" />, 
       count: Math.min(10, Math.floor(totalGoodPatterns / 5)),
       description: "Balanced training adherence",
-      color: "from-pink-500 to-pink-700"
+      color: "from-muted to-card"
     },
     { 
       id: "6", 
@@ -69,7 +69,7 @@ const PotionsPanel = () => {
       icon: <Sparkles className="w-5 h-5" />, 
       count: Math.min(10, behaviorPatterns?.recovery_patterns || 0),
       description: "Good recovery practices",
-      color: "from-violet-500 to-violet-700"
+      color: "from-muted to-card"
     },
   ];
 
