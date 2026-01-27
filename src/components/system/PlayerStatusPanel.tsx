@@ -18,7 +18,7 @@ const StatBar = ({ label, value, maxValue, icon, delay = 0 }: StatBarProps) => {
     <div className="mb-3">
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
-          {icon && <span className="text-primary/70 w-4 h-4">{icon}</span>}
+          {icon && <span className="text-muted-foreground w-4 h-4">{icon}</span>}
           <span className="stat-label text-xs tracking-[0.2em]">{label}</span>
         </div>
         <span className="text-sm font-semibold text-foreground">{value}</span>
@@ -45,7 +45,7 @@ const PlayerStatusPanel = () => {
     return (
       <div className="system-panel p-5">
         <div className="flex items-center justify-center py-8">
-          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-border border-t-foreground rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -96,13 +96,13 @@ const PlayerStatusPanel = () => {
       {/* Level & Rank Display */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/30 to-accent/20 border-2 border-primary/50 flex items-center justify-center animate-pulse-glow">
-            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-              <Shield className="w-8 h-8 text-primary/70" />
+          <div className="w-20 h-20 rounded-full bg-muted border-2 border-border flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-card flex items-center justify-center overflow-hidden">
+              <Shield className="w-8 h-8 text-muted-foreground" />
             </div>
           </div>
-          {/* Level badge with pulse animation */}
-          <div className="level-badge absolute -bottom-1 -right-1 bg-gradient-to-br from-primary to-accent border-2 border-primary rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+          {/* Level badge */}
+          <div className="level-badge absolute -bottom-1 -right-1 bg-card border-2 border-border rounded-full px-2.5 py-1 text-xs font-bold text-foreground">
             Lv.{playerData.level}
           </div>
         </div>
@@ -114,7 +114,7 @@ const PlayerStatusPanel = () => {
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Rank:</span>
             <span className="rank-text text-base font-semibold">{playerData.rank}-Class {playerData.class}</span>
-            <span className="rank-stars text-amber-400 text-sm ml-1">{rankStars}</span>
+            <span className="rank-stars text-muted-foreground text-sm ml-1">{rankStars}</span>
           </div>
         </div>
       </div>
@@ -156,7 +156,7 @@ const PlayerStatusPanel = () => {
         <div className="mb-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-primary/70" />
+              <Activity className="w-4 h-4 text-muted-foreground" />
               <span className="stat-label text-xs tracking-[0.2em]">EXPERIENCE</span>
             </div>
             <div className="flex items-baseline gap-1">
