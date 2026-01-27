@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { calculateLevelProgress } from "@/lib/levelCalculation";
 import { Edit2, Trash2, Star, Power, PowerOff } from "lucide-react";
 import EditSkillDialog from "./EditSkillDialog";
+import ConfirmDialog from "./ConfirmDialog";
 
 interface SkillCardProps {
   skill: Skill;
@@ -12,6 +13,7 @@ interface SkillCardProps {
 const SkillCard = ({ skill }: SkillCardProps) => {
   const { updateSkill, deleteSkill } = useSkills();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const progress = calculateLevelProgress(skill.xp);
 
@@ -23,9 +25,12 @@ const SkillCard = ({ skill }: SkillCardProps) => {
   };
 
   const handleDelete = () => {
-    if (window.confirm(`Delete skill "${skill.name}"?`)) {
-      deleteSkill.mutate(skill.id);
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    deleteSkill.mutate(skill.id);
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -135,7 +140,7 @@ const SkillCard = ({ skill }: SkillCardProps) => {
               onClick={handleToggleActive}
               className={`h-7 px-3 text-xs ${
                 skill.is_active
-                  ? "text-green-600 hover:text-green-700"
+                  ? "text-primary hover:text-primary/80"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -155,6 +160,15 @@ const SkillCard = ({ skill }: SkillCardProps) => {
         skill={skill}
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Skill"
+        description={`Are you sure you want to delete "${skill.name}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
       />
     </>
   );

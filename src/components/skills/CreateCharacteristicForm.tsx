@@ -3,17 +3,16 @@ import { useCharacteristics } from "@/hooks/useCharacteristics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { X } from "lucide-react";
+import { CHARACTERISTIC_ICONS } from "@/lib/skillsConstants";
 
 interface CreateCharacteristicFormProps {
   onClose: () => void;
 }
 
-const iconOptions = ["⭐", "💪", "🧠", "❤️", "⚡", "🎯", "🛡️", "⚔️", "🏃", "🎨"];
-
 const CreateCharacteristicForm = ({ onClose }: CreateCharacteristicFormProps) => {
   const { createCharacteristic } = useCharacteristics();
   const [name, setName] = useState("");
-  const [icon, setIcon] = useState("⭐");
+  const [icon, setIcon] = useState(CHARACTERISTIC_ICONS[0]);
   const [xp, setXP] = useState("0");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,7 +56,7 @@ const CreateCharacteristicForm = ({ onClose }: CreateCharacteristicFormProps) =>
             Icon
           </label>
           <div className="grid grid-cols-5 gap-2">
-            {iconOptions.map((iconOption) => (
+            {CHARACTERISTIC_ICONS.map((iconOption) => (
               <button
                 key={iconOption}
                 type="button"

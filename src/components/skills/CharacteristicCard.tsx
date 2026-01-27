@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calculateLevelProgress } from "@/lib/levelCalculation";
 import { Edit2, Trash2, Save, X, Star } from "lucide-react";
+import ConfirmDialog from "./ConfirmDialog";
 
 interface CharacteristicCardProps {
   characteristic: Characteristic;
@@ -12,6 +13,7 @@ interface CharacteristicCardProps {
 const CharacteristicCard = ({ characteristic }: CharacteristicCardProps) => {
   const { updateCharacteristic, deleteCharacteristic } = useCharacteristics();
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [editName, setEditName] = useState(characteristic.name);
   const [editIcon, setEditIcon] = useState(characteristic.icon);
   const [editXP, setEditXP] = useState(characteristic.xp.toString());
@@ -36,13 +38,17 @@ const CharacteristicCard = ({ characteristic }: CharacteristicCardProps) => {
   };
 
   const handleDelete = () => {
-    if (window.confirm(`Delete characteristic "${characteristic.name}"?`)) {
-      deleteCharacteristic.mutate(characteristic.id);
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = () => {
+    deleteCharacteristic.mutate(characteristic.id);
+    setShowDeleteDialog(false);
   };
 
   return (
-    <div className="system-panel p-4 space-y-3">
+    <>
+      <div className="system-panel p-4 space-y-3">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3 flex-1">
@@ -86,7 +92,7 @@ const CharacteristicCard = ({ characteristic }: CharacteristicCardProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                className="h-8 w-8 text-primary hover:text-primary/80 hover:bg-primary/10"
                 onClick={handleSave}
               >
                 <Save className="w-4 h-4" />
@@ -153,6 +159,16 @@ const CharacteristicCard = ({ characteristic }: CharacteristicCardProps) => {
         </div>
       </div>
     </div>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        title="Delete Characteristic"
+        description={`Are you sure you want to delete "${characteristic.name}"? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+      />
+    </>
   );
 };
 
