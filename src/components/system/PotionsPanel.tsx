@@ -78,24 +78,19 @@ const PotionsPanel = () => {
       {/* Potion Bottle */}
       <div className={`
         relative w-12 h-16 rounded-b-lg rounded-t-sm 
-        bg-gradient-to-b ${potion.color} 
-        border border-white/10
-        shadow-lg
+        bg-muted 
+        border border-border
         transition-transform duration-300
         group-hover:scale-105
-        group-hover:shadow-[0_0_20px_rgba(139,92,246,0.3)]
       `}>
         {/* Bottle neck */}
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-3 bg-gradient-to-b from-gray-600 to-gray-700 rounded-t-sm border border-white/10" />
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-3 bg-card rounded-t-sm border border-border" />
         
         {/* Cork */}
-        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-3 h-2 bg-gradient-to-b from-amber-800 to-amber-900 rounded-t-sm" />
-        
-        {/* Liquid shine */}
-        <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-b-lg" />
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 w-3 h-2 bg-muted-foreground rounded-t-sm" />
         
         {/* Icon */}
-        <div className="absolute inset-0 flex items-center justify-center text-white/70">
+        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
           {potion.icon}
         </div>
         
