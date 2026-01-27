@@ -10,6 +10,12 @@ export interface Characteristic {
   icon: string;
   xp: number;
   level: number;
+  goal_type: 'daily' | 'weekly';
+  goal_minutes: number;
+  base_xp: number;
+  current_streak: number;
+  best_streak: number;
+  consistency_state: 'consistent' | 'partial' | 'broken' | 'neutral';
   created_at: string;
   updated_at: string;
 }
@@ -18,12 +24,21 @@ export interface CreateCharacteristicInput {
   name: string;
   icon?: string;
   xp?: number;
+  goal_type: 'daily' | 'weekly';
+  goal_minutes: number;
+  base_xp: number;
 }
 
 export interface UpdateCharacteristicInput {
   name?: string;
   icon?: string;
   xp?: number;
+  goal_type?: 'daily' | 'weekly';
+  goal_minutes?: number;
+  base_xp?: number;
+  current_streak?: number;
+  best_streak?: number;
+  consistency_state?: 'consistent' | 'partial' | 'broken' | 'neutral';
 }
 
 export const useCharacteristics = () => {

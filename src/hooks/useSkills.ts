@@ -14,6 +14,12 @@ export interface Skill {
   level: number;
   is_active: boolean;
   related_characteristics: string[];
+  goal_type: 'daily' | 'weekly';
+  goal_minutes: number;
+  base_xp: number;
+  current_streak: number;
+  best_streak: number;
+  consistency_state: 'consistent' | 'partial' | 'broken' | 'neutral';
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +32,9 @@ export interface CreateSkillInput {
   xp?: number;
   is_active?: boolean;
   related_characteristics?: string[];
+  goal_type: 'daily' | 'weekly';
+  goal_minutes: number;
+  base_xp: number;
 }
 
 export interface UpdateSkillInput {
@@ -36,6 +45,12 @@ export interface UpdateSkillInput {
   xp?: number;
   is_active?: boolean;
   related_characteristics?: string[];
+  goal_type?: 'daily' | 'weekly';
+  goal_minutes?: number;
+  base_xp?: number;
+  current_streak?: number;
+  best_streak?: number;
+  consistency_state?: 'consistent' | 'partial' | 'broken' | 'neutral';
 }
 
 export const useSkills = () => {
