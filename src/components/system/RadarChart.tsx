@@ -8,27 +8,51 @@ const RadarChart = () => {
   // 18 metrics for Life OS radar chart - clockwise order as specified
   const data = useMemo(() => {
     // Generate sample data based on stats (scale 0-2000)
-    // In a real implementation, these would come from actual metrics
+    // TODO: Replace with actual metric data when backend is implemented
+    // Currently using existing stats as a baseline to generate varied values
     const baseMultiplier = stats ? 10 : 5;
+    
+    // Multipliers for variation across metrics
+    const METRIC_MULTIPLIERS = {
+      programming: 1.0,
+      learning: 0.8,
+      erudition: 1.0,
+      discipline: 0.7,
+      productivity: 1.7,
+      foreignLanguage: 0.8,
+      fitness: 1.2,
+      drawing: 0.6,
+      hygiene: 1.5,
+      reading: 0.9,
+      communication: 0.7,
+      cooking: 1.1,
+      meditation: 0.8,
+      swimming: 1.3,
+      running: 1.1,
+      math: 0.9,
+      music: 0.7,
+      cleaning: 1.2
+    };
+    
     return [
-      { label: "Programming", value: (stats?.strength || 30) * baseMultiplier },
-      { label: "Learning", value: (stats?.endurance || 25) * baseMultiplier },
-      { label: "Erudition", value: (stats?.mobility || 30) * baseMultiplier },
-      { label: "Discipline", value: (stats?.consistency || 20) * baseMultiplier },
-      { label: "Productivity", value: (stats?.recovery || 50) * baseMultiplier },
-      { label: "Foreign Language", value: (stats?.strength || 30) * baseMultiplier * 0.8 },
-      { label: "Fitness", value: (stats?.endurance || 25) * baseMultiplier * 1.2 },
-      { label: "Drawing", value: (stats?.mobility || 30) * baseMultiplier * 0.6 },
-      { label: "Hygiene", value: (stats?.consistency || 20) * baseMultiplier * 1.5 },
-      { label: "Reading", value: (stats?.recovery || 50) * baseMultiplier * 0.9 },
-      { label: "Communication", value: (stats?.strength || 30) * baseMultiplier * 0.7 },
-      { label: "Cooking", value: (stats?.endurance || 25) * baseMultiplier * 1.1 },
-      { label: "Meditation", value: (stats?.mobility || 30) * baseMultiplier * 0.8 },
-      { label: "Swimming", value: (stats?.consistency || 20) * baseMultiplier * 1.3 },
-      { label: "Running", value: (stats?.recovery || 50) * baseMultiplier * 1.1 },
-      { label: "Math", value: (stats?.strength || 30) * baseMultiplier * 0.9 },
-      { label: "Music", value: (stats?.endurance || 25) * baseMultiplier * 0.7 },
-      { label: "Cleaning", value: (stats?.mobility || 30) * baseMultiplier * 1.2 },
+      { label: "Programming", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.programming },
+      { label: "Learning", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.learning },
+      { label: "Erudition", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.erudition },
+      { label: "Discipline", value: (stats?.consistency || 20) * baseMultiplier * METRIC_MULTIPLIERS.discipline },
+      { label: "Productivity", value: (stats?.recovery || 50) * baseMultiplier * METRIC_MULTIPLIERS.productivity },
+      { label: "Foreign Language", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.foreignLanguage },
+      { label: "Fitness", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.fitness },
+      { label: "Drawing", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.drawing },
+      { label: "Hygiene", value: (stats?.consistency || 20) * baseMultiplier * METRIC_MULTIPLIERS.hygiene },
+      { label: "Reading", value: (stats?.recovery || 50) * baseMultiplier * METRIC_MULTIPLIERS.reading },
+      { label: "Communication", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.communication },
+      { label: "Cooking", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.cooking },
+      { label: "Meditation", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.meditation },
+      { label: "Swimming", value: (stats?.consistency || 20) * baseMultiplier * METRIC_MULTIPLIERS.swimming },
+      { label: "Running", value: (stats?.recovery || 50) * baseMultiplier * METRIC_MULTIPLIERS.running },
+      { label: "Math", value: (stats?.strength || 30) * baseMultiplier * METRIC_MULTIPLIERS.math },
+      { label: "Music", value: (stats?.endurance || 25) * baseMultiplier * METRIC_MULTIPLIERS.music },
+      { label: "Cleaning", value: (stats?.mobility || 30) * baseMultiplier * METRIC_MULTIPLIERS.cleaning },
     ];
   }, [stats]);
 
@@ -150,7 +174,7 @@ const RadarChart = () => {
   }, [data]);
 
   return (
-    <div className="system-panel p-6 animate-fade-in-up animation-delay-100" style={{ background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)' }}>
+    <div className="system-panel p-6 animate-fade-in-up animation-delay-100" style={{ background: '#f8f8f8' }}>
       <div className="text-center mb-4">
         <span className="text-xs uppercase tracking-[0.15em]" style={{ color: '#9A9A9A' }}>Core Metrics</span>
         <h3 className="text-sm uppercase tracking-wider mt-1" style={{ color: '#666666', fontWeight: 400 }}>Physical Balance</h3>
